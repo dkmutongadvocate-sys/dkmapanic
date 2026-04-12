@@ -306,9 +306,40 @@ function showScreen(id){
   document.getElementById('screen-'+id).classList.add('active');
 }
 
-function showReadyScreen(){
+async function showReadyScreen(){
   document.getElementById('ready-client-name').textContent=panicClientName||'Client';
+  // Check if there's already an unresolved alert — if so go straight to sent screen
+  if(panicClientId){
+    const{data}=await sb.from('panic_alerts')
+      .select('id,triggered_at,resolved')
+      .eq('client_id',panicClientId)
+      .eq('resolved',false)
+      .order('triggered_at',{ascending:false})
+      .limit(1)
+      .maybeSingle();
+    if(data){
+      // Active alert — show sent/locked screen and poll for resolution
+      const dt=new Date(data.triggered_at);
+      const timeStr=dt.toLocaleString('en-KE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      const refEl=document.getElementById('sent-ref');
+      if(refEl)refEl.textContent='Alert sent '+timeStr+' — awaiting firm response';
+      showScreen('sent');
+      startResolutionPoll(data.id);
+      return;
+    }
+  }
   showScreen('ready');
+}
+
+function startResolutionPoll(alertId){
+  const interval=setInterval(async()=>{
+    const{data}=await sb.from('panic_alerts').select('resolved').eq('id',alertId).maybeSingle();
+    if(data?.resolved){
+      clearInterval(interval);
+      showScreen('ready');
+      document.getElementById('sent-ref').textContent='';
+    }
+  },15000);
 }
 
 function resetSetup(){
@@ -442,6 +473,7 @@ async function sendAlert(){
 
   btn.disabled=false;
   showScreen('sent');
+  if(data?.id)startResolutionPoll(data.id);
 }
 
 function getDeviceInfo(ua){
