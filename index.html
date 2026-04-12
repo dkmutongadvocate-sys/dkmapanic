@@ -313,7 +313,7 @@ async function showReadyScreen(){
     const{data}=await sb.from('panic_alerts')
       .select('id,triggered_at,resolved')
       .eq('client_id',panicClientId)
-      .eq('resolved',false)
+      .neq('resolved',true)
       .order('triggered_at',{ascending:false})
       .limit(1)
       .maybeSingle();
@@ -450,7 +450,8 @@ async function sendAlert(){
     device_info:device,
     user_agent:ua.slice(0,300),
     triggered_at:now.toISOString(),
-    acknowledged:false
+    acknowledged:false,
+    resolved:false
   };
 
   const{data,error}=await sb.from('panic_alerts').insert([payload]).select().single();
