@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>DKMA — Emergency Alert</title>
+<meta name="theme-color" content="#A30000"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="DKMA SOS"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --red:#A30000;--red2:#C0392B;--red3:#E74C3C;
+  --navy:#0D1B2A;--navy2:#1a2d42;--gold:#B8953A;
+  --cream:#F8F5F0;--txt:#1a1a1a;--txt2:#5a5a5a;--txt3:#8a8a8a;
+  --brd:#D9D4CB;--green:#2D6A4F;
+}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);color:#fff;overflow-x:hidden}
+
+/* ── SCREENS ─────────────────────────────────────────────────── */
+.screen{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.screen.active{display:flex}
+
+/* ── SETUP SCREEN ────────────────────────────────────────────── */
+#screen-setup{background:var(--navy);gap:0}
+.setup-logo{text-align:center;margin-bottom:32px}
+.setup-logo-name{font-family:'Playfair Display',serif;font-size:22px;color:#fff;font-weight:500}
+.setup-logo-sub{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;margin-top:3px}
+.setup-box{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;width:100%;max-width:400px}
+.setup-title{font-family:'Playfair Display',serif;font-size:18px;color:#fff;margin-bottom:6px}
+.setup-sub{font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:24px;line-height:1.6}
+.setup-label{font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;display:block}
+.setup-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:11px 14px;font-size:13px;font-family:'DM Sans',sans-serif;color:#fff;outline:none;margin-bottom:14px;transition:border-color 0.15s}
+.setup-input::placeholder{color:rgba(255,255,255,0.3)}
+.setup-input:focus{border-color:rgba(255,255,255,0.4)}
+.setup-btn{width:100%;background:var(--gold);color:var(--navy);border:none;padding:13px;border-radius:9px;font-size:14px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:background 0.15s;margin-top:4px}
+.setup-btn:hover{background:#D4AF5A}
+.setup-error{font-size:12px;color:#ff7070;min-height:18px;margin-bottom:10px;text-align:center}
+.setup-notice{font-size:11px;color:rgba(255,255,255,0.3);text-align:center;margin-top:16px;line-height:1.6}
+
+/* ── READY SCREEN ────────────────────────────────────────────── */
+#screen-ready{
+  background:radial-gradient(ellipse at 50% 30%,#1a0000 0%,var(--navy) 70%);
+  gap:0;position:relative;overflow:hidden
+}
+#screen-ready::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 45%,rgba(163,0,0,0.15) 0%,transparent 65%);
+  pointer-events:none
+}
+.ready-top{text-align:center;margin-bottom:40px;position:relative;z-index:1}
+.ready-name{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:4px}
+.ready-firm{font-family:'Playfair Display',serif;font-size:16px;color:rgba(255,255,255,0.8)}
+.panic-btn-wrap{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;margin-bottom:40px}
+.panic-ring{
+  position:absolute;width:200px;height:200px;border-radius:50%;
+  border:2px solid rgba(163,0,0,0.3);animation:pulse-ring 2.5s ease-out infinite
+}
+.panic-ring:nth-child(2){animation-delay:0.8s;width:240px;height:240px;border-color:rgba(163,0,0,0.15)}
+.panic-ring:nth-child(3){animation-delay:1.6s;width:280px;height:280px;border-color:rgba(163,0,0,0.08)}
+@keyframes pulse-ring{0%{transform:scale(0.85);opacity:1}100%{transform:scale(1.15);opacity:0}}
+.panic-btn{
+  position:relative;width:160px;height:160px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,var(--red3),var(--red));
+  border:none;cursor:pointer;
+  box-shadow:0 0 0 6px rgba(163,0,0,0.2),0 8px 32px rgba(163,0,0,0.5),inset 0 2px 4px rgba(255,255,255,0.15);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  transition:transform 0.12s,box-shadow 0.12s;
+  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation
+}
+.panic-btn:active{
+  transform:scale(0.95);
+  box-shadow:0 0 0 6px rgba(163,0,0,0.3),0 4px 20px rgba(163,0,0,0.6),inset 0 2px 4px rgba(255,255,255,0.15)
+}
+.panic-btn-icon{font-size:42px;line-height:1;margin-bottom:2px}
+.panic-btn-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.9)}
+.ready-hint{font-size:11px;color:rgba(255,255,255,0.3);text-align:center;position:relative;z-index:1}
+
+/* ── TRIGGER SCREEN ──────────────────────────────────────────── */
+#screen-trigger{
+  background:radial-gradient(ellipse at 50% 20%,#300000,var(--navy) 80%);
+  gap:20px;justify-content:flex-start;padding-top:48px
+}
+.trigger-header{text-align:center;width:100%}
+.trigger-icon{font-size:48px;margin-bottom:10px;animation:shake 0.5s ease-in-out}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.trigger-title{font-family:'Playfair Display',serif;font-size:22px;color:#fff;margin-bottom:4px}
+.trigger-sub{font-size:12px;color:rgba(255,255,255,0.5)}
+.trigger-form{width:100%;max-width:420px;display:flex;flex-direction:column;gap:12px}
+.situation-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sit-btn{
+  background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:10px;padding:12px 10px;text-align:center;cursor:pointer;
+  transition:all 0.15s;font-family:'DM Sans',sans-serif
+}
+.sit-btn:hover{border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.12)}
+.sit-btn.sel{border-color:var(--red3);background:rgba(231,76,60,0.2)}
+.sit-icon{font-size:24px;display:block;margin-bottom:5px}
+.sit-label{font-size:11px;font-weight:500;color:rgba(255,255,255,0.85)}
+.trigger-textarea{
+  width:100%;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:10px;padding:12px 14px;font-size:13px;font-family:'DM Sans',sans-serif;
+  color:#fff;outline:none;resize:none;min-height:80px;
+  transition:border-color 0.15s;line-height:1.5
+}
+.trigger-textarea::placeholder{color:rgba(255,255,255,0.3)}
+.trigger-textarea:focus{border-color:rgba(255,255,255,0.35)}
+.loc-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 14px}
+.loc-dot{width:10px;height:10px;border-radius:50%;background:#ccc;flex-shrink:0;transition:background 0.3s}
+.loc-dot.got{background:#2ecc71}.loc-dot.err{background:#e74c3c}.loc-dot.loading{background:var(--gold);animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.loc-txt{font-size:12px;color:rgba(255,255,255,0.6);flex:1}
+.loc-retry{font-size:11px;color:var(--gold);cursor:pointer;text-decoration:underline;flex-shrink:0}
+.send-alert-btn{
+  width:100%;background:linear-gradient(135deg,var(--red2),var(--red));
+  color:#fff;border:none;padding:15px;border-radius:12px;
+  font-size:15px;font-family:'DM Sans',sans-serif;font-weight:600;
+  cursor:pointer;transition:all 0.15s;letter-spacing:0.3px;
+  box-shadow:0 4px 20px rgba(163,0,0,0.4)
+}
+.send-alert-btn:hover{background:linear-gradient(135deg,var(--red3),var(--red2));box-shadow:0 6px 24px rgba(163,0,0,0.5)}
+.send-alert-btn:disabled{opacity:0.5;cursor:not-allowed}
+.cancel-link{text-align:center;font-size:12px;color:rgba(255,255,255,0.35);cursor:pointer}
+.cancel-link:hover{color:rgba(255,255,255,0.6)}
+
+/* ── SENDING SCREEN ──────────────────────────────────────────── */
+#screen-sending{background:radial-gradient(ellipse at 50% 30%,#200000,var(--navy) 80%);gap:20px}
+.sending-spinner{width:56px;height:56px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--red3);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sending-title{font-family:'Playfair Display',serif;font-size:20px;color:#fff}
+.sending-sub{font-size:12px;color:rgba(255,255,255,0.45);text-align:center;line-height:1.6;max-width:280px}
+
+/* ── SENT SCREEN ─────────────────────────────────────────────── */
+#screen-sent{background:radial-gradient(ellipse at 50% 30%,#001a0a,var(--navy) 80%);gap:20px}
+.sent-icon{font-size:56px;animation:pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275)}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.sent-title{font-family:'Playfair Display',serif;font-size:22px;color:#fff}
+.sent-sub{font-size:13px;color:rgba(255,255,255,0.5);text-align:center;line-height:1.7;max-width:300px}
+.sent-actions{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;margin-top:10px}
+.sent-call-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  background:linear-gradient(135deg,#1a6b3a,#145c30);
+  color:#fff;border:none;padding:14px 20px;border-radius:12px;
+  font-size:14px;font-family:'DM Sans',sans-serif;font-weight:600;
+  cursor:pointer;text-decoration:none;transition:all 0.15s;
+  box-shadow:0 4px 16px rgba(0,100,50,0.4)
+}
+.sent-wa-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  background:linear-gradient(135deg,#1a7a30,#128c24);
+  color:#fff;border:none;padding:14px 20px;border-radius:12px;
+  font-size:14px;font-family:'DM Sans',sans-serif;font-weight:600;
+  cursor:pointer;text-decoration:none;transition:all 0.15s;
+  box-shadow:0 4px 16px rgba(0,120,40,0.4)
+}
+.sent-back-btn{
+  background:transparent;border:1px solid rgba(255,255,255,0.15);
+  color:rgba(255,255,255,0.5);padding:12px 20px;border-radius:12px;
+  font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s
+}
+.sent-back-btn:hover{background:rgba(255,255,255,0.07)}
+.sent-ref{font-size:11px;color:rgba(255,255,255,0.25);text-align:center}
+
+/* ── MISC ─────────────────────────────────────────────────────── */
+.divider-label{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;text-align:center}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+</style>
+</head>
+<body>
+
+<!-- SETUP: enter client code -->
+<div class="screen active" id="screen-setup">
+  <div class="setup-logo">
+    <div class="setup-logo-name">DKMA Advocates</div>
+    <div class="setup-logo-sub">Emergency Alert Setup</div>
+  </div>
+  <div class="setup-box">
+    <div class="setup-title">Set Up Emergency Access</div>
+    <div class="setup-sub">Enter your client code (provided by the firm) to link this page to your account. You only do this once — then bookmark this page.</div>
+    <label class="setup-label">Your Client Code</label>
+    <input class="setup-input" id="setup-code" placeholder="e.g. DKMA-12345" autocomplete="off" autocapitalize="characters" spellcheck="false" onkeydown="if(event.key==='Enter')setupPanic()"/>
+    <div class="setup-error" id="setup-error"></div>
+    <button class="setup-btn" id="setup-btn" onclick="setupPanic()">Activate Emergency Button</button>
+    <div class="setup-notice">This page works offline after setup. Bookmark it now and it will be ready when you need it most.</div>
+  </div>
+</div>
+
+<!-- READY: big red button -->
+<div class="screen" id="screen-ready">
+  <div class="ready-top">
+    <div class="ready-name" id="ready-client-name">Loading…</div>
+    <div class="ready-firm">DKMA Emergency Line</div>
+  </div>
+  <div class="panic-btn-wrap">
+    <div class="panic-ring"></div>
+    <div class="panic-ring"></div>
+    <div class="panic-ring"></div>
+    <button class="panic-btn" id="panic-btn" onclick="triggerPanic()">
+      <span class="panic-btn-icon">🆘</span>
+      <span class="panic-btn-label">SOS</span>
+    </button>
+  </div>
+  <div class="ready-hint">Tap the button above to send an emergency alert to DKMA</div>
+  <div style="margin-top:24px;font-size:11px;color:rgba(255,255,255,0.2);cursor:pointer" onclick="resetSetup()">Change client code</div>
+</div>
+
+<!-- TRIGGER: situation + note -->
+<div class="screen" id="screen-trigger">
+  <div class="trigger-header">
+    <div class="trigger-icon">🚨</div>
+    <div class="trigger-title">Send Emergency Alert</div>
+    <div class="trigger-sub">Your location and device info will be sent automatically</div>
+  </div>
+  <div class="trigger-form">
+    <div class="divider-label">What is happening?</div>
+    <div class="situation-grid">
+      <div class="sit-btn" id="sit-arrested" onclick="selectSit('arrested')">
+        <span class="sit-icon">🚔</span>
+        <span class="sit-label">Arrested / Detained</span>
+      </div>
+      <div class="sit-btn" id="sit-danger" onclick="selectSit('danger')">
+        <span class="sit-icon">⚠️</span>
+        <span class="sit-label">In Danger</span>
+      </div>
+      <div class="sit-btn" id="sit-accident" onclick="selectSit('accident')">
+        <span class="sit-icon">🏥</span>
+        <span class="sit-label">Accident / Injury</span>
+      </div>
+      <div class="sit-btn" id="sit-other" onclick="selectSit('other')">
+        <span class="sit-icon">❗</span>
+        <span class="sit-label">Other Emergency</span>
+      </div>
+    </div>
+    <div class="divider-label">Brief note (optional)</div>
+    <textarea class="trigger-textarea" id="panic-note" placeholder="e.g. Arrested at Gigiri Police Station, need lawyer immediately…" maxlength="300" rows="3"></textarea>
+    <div class="loc-row">
+      <div class="loc-dot loading" id="loc-dot"></div>
+      <div class="loc-txt" id="loc-txt">Getting your location…</div>
+      <span class="loc-retry" id="loc-retry" style="display:none" onclick="getLocation()">Retry</span>
+    </div>
+    <button class="send-alert-btn" id="send-alert-btn" onclick="sendAlert()">🆘 Send Alert to DKMA Now</button>
+    <div class="cancel-link" onclick="showScreen('ready')">← Cancel</div>
+  </div>
+</div>
+
+<!-- SENDING -->
+<div class="screen" id="screen-sending">
+  <div class="sending-spinner"></div>
+  <div class="sending-title">Sending Alert…</div>
+  <div class="sending-sub">Your emergency alert is being sent to DKMA. Please stay as calm as possible.</div>
+</div>
+
+<!-- SENT -->
+<div class="screen" id="screen-sent">
+  <div class="sent-icon">✅</div>
+  <div class="sent-title">Alert Sent</div>
+  <div class="sent-sub">DKMA has been notified. Your location and details have been recorded. Call or WhatsApp the lawyer directly for fastest response.</div>
+  <div class="sent-actions">
+    <a class="sent-call-btn" id="sent-call-btn" href="#">📞 Call Lawyer Now</a>
+    <a class="sent-wa-btn" id="sent-wa-btn" href="#" target="_blank">💬 WhatsApp Lawyer</a>
+    <button class="sent-back-btn" onclick="showScreen('ready')">← Back to Emergency Button</button>
+  </div>
+  <div class="sent-ref" id="sent-ref"></div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────
+const SUPABASE_URL='%%SUPABASE_URL%%';
+const SUPABASE_KEY='%%SUPABASE_ANON_KEY%%';
+const LAWYER_PHONE='%%LAWYER_PHONE%%'; // e.g. +254712345678
+const STORAGE_KEY='dkma-panic-client';
+
+if(SUPABASE_URL.includes('%%')||SUPABASE_KEY.includes('%%')){
+  document.body.innerHTML='<div style="padding:40px;text-align:center;color:#ff7070;font-family:sans-serif"><h2>Configuration Error</h2><p style="margin-top:12px;font-size:14px">Supabase credentials not injected. Check GitHub Actions secrets.</p></div>';
+  throw new Error('Credentials not injected');
+}
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false}});
+
+// ── STATE ─────────────────────────────────────────────────────────
+let panicClientId=null;
+let panicClientName='';
+let currentLat=null,currentLng=null,locationError=null;
+let selectedSit=null;
+
+// ── INIT ──────────────────────────────────────────────────────────
+function init(){
+  const saved=localStorage.getItem(STORAGE_KEY);
+  if(saved){
+    try{const d=JSON.parse(saved);panicClientId=d.id;panicClientName=d.name;showReadyScreen();}
+    catch(e){localStorage.removeItem(STORAGE_KEY);showScreen('setup');}
+  } else {
+    showScreen('setup');
+  }
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+
+function showReadyScreen(){
+  document.getElementById('ready-client-name').textContent=panicClientName||'Client';
+  showScreen('ready');
+}
+
+function resetSetup(){
+  localStorage.removeItem(STORAGE_KEY);
+  panicClientId=null;panicClientName='';
+  document.getElementById('setup-code').value='';
+  document.getElementById('setup-error').textContent='';
+  showScreen('setup');
+}
+
+// ── SETUP ─────────────────────────────────────────────────────────
+async function setupPanic(){
+  const code=(document.getElementById('setup-code').value||'').trim().toUpperCase();
+  const errEl=document.getElementById('setup-error');
+  errEl.textContent='';
+  if(!code){errEl.textContent='Please enter your client code.';return;}
+  const btn=document.getElementById('setup-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Verifying…';
+  // Look up client by panic_code field
+  const{data,error}=await sb.from('clients').select('id,name').eq('panic_code',code).maybeSingle();
+  btn.disabled=false;btn.textContent='Activate Emergency Button';
+  if(error||!data){errEl.textContent='Client code not found. Please check with the firm.';return;}
+  panicClientId=data.id;panicClientName=data.name;
+  localStorage.setItem(STORAGE_KEY,JSON.stringify({id:data.id,name:data.name}));
+  showReadyScreen();
+}
+
+// ── TRIGGER ───────────────────────────────────────────────────────
+function triggerPanic(){
+  selectedSit=null;
+  document.querySelectorAll('.sit-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('panic-note').value='';
+  showScreen('trigger');
+  getLocation();
+}
+
+function selectSit(sit){
+  selectedSit=sit;
+  document.querySelectorAll('.sit-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('sit-'+sit).classList.add('sel');
+}
+
+function getLocation(){
+  const dot=document.getElementById('loc-dot');
+  const txt=document.getElementById('loc-txt');
+  const retry=document.getElementById('loc-retry');
+  dot.className='loc-dot loading';
+  txt.textContent='Getting your location…';
+  retry.style.display='none';
+  if(!navigator.geolocation){
+    dot.className='loc-dot err';
+    txt.textContent='Location not available on this device';
+    retry.style.display='none';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      currentLat=pos.coords.latitude;
+      currentLng=pos.coords.longitude;
+      const acc=Math.round(pos.coords.accuracy);
+      dot.className='loc-dot got';
+      txt.textContent=`Location captured (±${acc}m accuracy)`;
+      retry.style.display='none';
+    },
+    err=>{
+      locationError=err.message;
+      dot.className='loc-dot err';
+      txt.textContent='Could not get location — alert will still send';
+      retry.style.display='block';
+    },
+    {timeout:10000,enableHighAccuracy:true}
+  );
+}
+
+// ── SEND ──────────────────────────────────────────────────────────
+async function sendAlert(){
+  if(!panicClientId){showScreen('setup');return;}
+  const note=(document.getElementById('panic-note').value||'').trim();
+  const btn=document.getElementById('send-alert-btn');
+  btn.disabled=true;
+  showScreen('sending');
+
+  const ua=navigator.userAgent;
+  const device=getDeviceInfo(ua);
+  const now=new Date();
+
+  const payload={
+    client_id:panicClientId,
+    situation:selectedSit||'unspecified',
+    note:note||null,
+    latitude:currentLat,
+    longitude:currentLng,
+    location_accuracy:null,
+    maps_link:currentLat&&currentLng?`https://maps.google.com/?q=${currentLat},${currentLng}`:null,
+    device_info:device,
+    user_agent:ua.slice(0,300),
+    triggered_at:now.toISOString(),
+    acknowledged:false
+  };
+
+  const{data,error}=await sb.from('panic_alerts').insert([payload]).select().single();
+
+  if(error){
+    // Still show sent screen — alert may have partially gone through
+    console.error('Panic alert DB error:',error);
+  }
+
+  // Build WhatsApp / call links
+  const phone=LAWYER_PHONE.includes('%%')?'':LAWYER_PHONE;
+  const sitLabel={'arrested':'ARRESTED / DETAINED','danger':'IN DANGER','accident':'ACCIDENT / INJURY','other':'EMERGENCY'}[selectedSit||'other']||'EMERGENCY';
+  const locPart=currentLat?`📍 Location: https://maps.google.com/?q=${currentLat},${currentLng}`:'📍 Location: Not available';
+  const notePart=note?`\n📝 Note: ${note}`:'';
+  const waMsg=encodeURIComponent(`🚨 *EMERGENCY ALERT — ${panicClientName}*\n\n*Situation:* ${sitLabel}\n${locPart}${notePart}\n\n*Time:* ${now.toLocaleString('en-KE')}\n*Device:* ${device}\n\nClient needs immediate legal assistance.`);
+
+  document.getElementById('sent-call-btn').href=phone?`tel:${phone}`:'#';
+  document.getElementById('sent-wa-btn').href=phone?`https://wa.me/${phone.replace(/\D/g,'')}?text=${waMsg}`:'#';
+  if(data?.id)document.getElementById('sent-ref').textContent=`Alert ID: ${data.id.slice(0,8).toUpperCase()}`;
+
+  btn.disabled=false;
+  showScreen('sent');
+}
+
+function getDeviceInfo(ua){
+  let os='Unknown OS';
+  if(/android/i.test(ua))os='Android';
+  else if(/iphone|ipad|ipod/i.test(ua))os='iOS';
+  else if(/windows/i.test(ua))os='Windows';
+  else if(/mac/i.test(ua))os='macOS';
+  else if(/linux/i.test(ua))os='Linux';
+  let browser='Unknown Browser';
+  if(/chrome/i.test(ua)&&!/edge|opr/i.test(ua))browser='Chrome';
+  else if(/firefox/i.test(ua))browser='Firefox';
+  else if(/safari/i.test(ua)&&!/chrome/i.test(ua))browser='Safari';
+  else if(/edge/i.test(ua))browser='Edge';
+  return`${os} / ${browser}`;
+}
+
+init();
+</script>
+</body>
+</html>
