@@ -331,6 +331,8 @@ async function setupPanic(){
   const{data,error}=await sb.from('clients').select('id,name').eq('panic_code',code).maybeSingle();
   btn.disabled=false;btn.textContent='Activate Emergency Button';
   if(error||!data){errEl.textContent='Client code not found. Please check with the firm.';return;}
+  // Expire the code immediately (one-time use)
+  await sb.from('clients').update({panic_code:null}).eq('id',data.id);
   panicClientId=data.id;panicClientName=data.name;
   localStorage.setItem(STORAGE_KEY,JSON.stringify({id:data.id,name:data.name}));
   showReadyScreen();
