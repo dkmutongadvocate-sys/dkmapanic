@@ -328,9 +328,15 @@ async function setupPanic(){
   const btn=document.getElementById('setup-btn');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Verifying…';
   // Look up client by panic_code field
-  const{data,error}=await sb.from('clients').select('id,name').eq('panic_code',code).maybeSingle();
+  const{data,error}=await sb.from('clients').select('id,name,panic_code').eq('panic_code',code).maybeSingle();
   btn.disabled=false;btn.textContent='Activate Emergency Button';
-  if(error||!data){errEl.textContent='Client code not found. Please check with the firm.';return;}
+  // DEBUG — show raw result so we can diagnose
+  errEl.style.color='#aaa';
+  errEl.textContent=`Debug: code="${code}" | error=${error?JSON.stringify(error.message):'none'} | data=${data?JSON.stringify(data):'null'}`;
+  if(error||!data){
+    setTimeout(()=>{errEl.style.color='#ff7070';errEl.textContent='Client code not found. Please check with the firm.';},3000);
+    return;
+  }
   // Expire the code immediately (one-time use)
   await sb.from('clients').update({panic_code:null}).eq('id',data.id);
   panicClientId=data.id;panicClientName=data.name;
