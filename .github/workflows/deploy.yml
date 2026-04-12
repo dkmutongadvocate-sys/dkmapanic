@@ -1,0 +1,87 @@
+# ================================================================
+# DKMA Panic / SOS — GitHub Actions Deploy Workflow
+# Repo:  dkmutongadvocate-sys/dkmapanic
+# URL:   https://dkmutongadvocate-sys.github.io/dkmapanic/
+#
+# Required GitHub Secrets (repo Settings → Secrets and variables → Actions):
+#   SUPABASE_URL        — https://xxxx.supabase.co
+#   SUPABASE_ANON_KEY   — your Supabase anon/public key
+#   LAWYER_PHONE        — E.164 format e.g. +254712345678
+# ================================================================
+
+name: Deploy DKMA SOS Page
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # allows manual trigger from GitHub Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: https://dkmutongadvocate-sys.github.io/dkmapanic/
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Rename index.html if panic.html is the main file ────────
+      # If you committed the file as "panic.html", this step
+      # copies it to index.html so GitHub Pages serves it at /
+      - name: Ensure index.html exists
+        run: |
+          if [ ! -f index.html ] && [ -f panic.html ]; then
+            cp panic.html index.html
+            echo "Copied panic.html → index.html"
+          fi
+
+      # ── Inject secrets into index.html ──────────────────────────
+      - name: Inject Supabase credentials and lawyer phone
+        run: |
+          sed -i \
+            "s|%%SUPABASE_URL%%|${{ secrets.SUPABASE_URL }}|g" \
+            index.html
+          sed -i \
+            "s|%%SUPABASE_ANON_KEY%%|${{ secrets.SUPABASE_ANON_KEY }}|g" \
+            index.html
+          sed -i \
+            "s|%%LAWYER_PHONE%%|${{ secrets.LAWYER_PHONE }}|g" \
+            index.html
+          echo "Secrets injected into index.html"
+
+      # ── Verify injection worked (no placeholders remain) ────────
+      - name: Verify no placeholders remain
+        run: |
+          if grep -q '%%' index.html; then
+            echo "ERROR: Unreplaced placeholders found in index.html"
+            grep -n '%%' index.html
+            exit 1
+          fi
+          echo "All placeholders replaced successfully"
+
+      # ── Deploy to GitHub Pages ───────────────────────────────────
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'   # uploads entire repo root (includes sw.js, manifest.json)
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Print live URL
+        run: echo "✅ Live at https://dkmutongadvocate-sys.github.io/dkmapanic/"
