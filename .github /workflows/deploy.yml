@@ -1,0 +1,65 @@
+# ================================================================
+# GitHub Actions — DKMA Deploy Workflow
+# Place this at: .github/workflows/deploy.yml
+# ================================================================
+#
+# Required GitHub Secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_URL        — https://xxxx.supabase.co
+#   SUPABASE_ANON_KEY   — your Supabase anon/public key
+#   LAWYER_PHONE        — E.164 format, e.g. +254712345678
+#                         (used for WhatsApp/call links in panic alerts)
+# ================================================================
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Inject secrets into all HTML files ──────────────────────
+      - name: Inject Supabase credentials + Lawyer phone
+        run: |
+          for f in index.html portal/index.html panic.html; do
+            if [ -f "$f" ]; then
+              sed -i \
+                "s|%%SUPABASE_URL%%|${{ secrets.SUPABASE_URL }}|g; \
+                 s|%%SUPABASE_ANON_KEY%%|${{ secrets.SUPABASE_ANON_KEY }}|g; \
+                 s|%%LAWYER_PHONE%%|${{ secrets.LAWYER_PHONE }}|g" \
+                "$f"
+              echo "Injected secrets into $f"
+            fi
+          done
+
+      # ── Upload to GitHub Pages ───────────────────────────────────
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
