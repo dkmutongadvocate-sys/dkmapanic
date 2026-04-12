@@ -139,7 +139,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
 .sending-sub{font-size:12px;color:rgba(255,255,255,0.45);text-align:center;line-height:1.6;max-width:280px}
 
 /* ── SENT SCREEN ─────────────────────────────────────────────── */
-#screen-sent{background:radial-gradient(ellipse at 50% 30%,#001a0a,var(--navy) 80%);gap:20px}
+#screen-sent{background:radial-gradient(ellipse at 50% 30%,#1a0000,var(--navy) 80%);gap:20px}
 .sent-icon{font-size:56px;animation:pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275)}
 @keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
 .sent-title{font-family:'Playfair Display',serif;font-size:22px;color:#fff}
@@ -247,7 +247,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
       <span class="loc-retry" id="loc-retry" style="display:none" onclick="getLocation()">Retry</span>
     </div>
     <button class="send-alert-btn" id="send-alert-btn" onclick="sendAlert()">🆘 Send Alert to DKMA Now</button>
-    <div class="cancel-link" onclick="showScreen('ready')">← Cancel</div>
+    <div class="cancel-link" onclick="showReadyScreen()">← Cancel</div>
   </div>
 </div>
 
@@ -260,13 +260,12 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
 
 <!-- SENT -->
 <div class="screen" id="screen-sent">
-  <div class="sent-icon">✅</div>
-  <div class="sent-title">Alert Sent</div>
-  <div class="sent-sub">DKMA has been notified. Your location and details have been recorded. Call or WhatsApp the lawyer directly for fastest response.</div>
+  <div class="sent-icon">🚨</div>
+  <div class="sent-title" style="color:#ff6b6b">Alert Active</div>
+  <div class="sent-sub">DKMA has been notified. Call or WhatsApp the lawyer for the fastest response. You cannot send another alert until this one is resolved by the firm.</div>
   <div class="sent-actions">
     <a class="sent-call-btn" id="sent-call-btn" href="#">📞 Call Lawyer Now</a>
     <a class="sent-wa-btn" id="sent-wa-btn" href="#" target="_blank">💬 WhatsApp Lawyer</a>
-    <button class="sent-back-btn" onclick="showReadyScreen()">← Back to Emergency Button</button>
   </div>
   <div class="sent-ref" id="sent-ref"></div>
 </div>
@@ -331,13 +330,16 @@ async function showReadyScreen(){
   showScreen('ready');
 }
 
+let _resolutionInterval=null;
 function startResolutionPoll(alertId){
-  const interval=setInterval(async()=>{
+  if(_resolutionInterval){clearInterval(_resolutionInterval);_resolutionInterval=null;}
+  _resolutionInterval=setInterval(async()=>{
     const{data}=await sb.from('panic_alerts').select('resolved').eq('id',alertId).maybeSingle();
     if(data?.resolved){
-      clearInterval(interval);
-      showScreen('ready');
+      clearInterval(_resolutionInterval);
+      _resolutionInterval=null;
       document.getElementById('sent-ref').textContent='';
+      showReadyScreen();
     }
   },15000);
 }
@@ -359,14 +361,14 @@ async function setupPanic(){
   const btn=document.getElementById('setup-btn');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Verifying…';
   // Fetch clients with a panic_code set, match client-side to avoid PostgREST type errors
-  const{data:rows,error}=await sb.from('clients').select('id,name,panic_code').not('panic_code','is',null);
+  const{data:rows,error}=await sb.from('clients').select('id,name,panic_code,sos_enabled').not('panic_code','is',null);
   btn.disabled=false;btn.textContent='Activate Emergency Button';
   if(error){
     errEl.style.color='#ff7070';
     errEl.textContent='Connection error: '+error.message;
     return;
   }
-  const match=(rows||[]).find(r=>r.panic_code===code);
+  const match=(rows||[]).find(r=>r.panic_code===code&&r.sos_enabled!==false);
   if(!match){
     errEl.style.color='#ff7070';
     errEl.textContent='Client code not found. Please check with the firm.';
