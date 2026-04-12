@@ -14,7 +14,7 @@ name: Deploy DKMA SOS Page
 on:
   push:
     branches: [main]
-  workflow_dispatch:   # allows manual trigger from GitHub Actions tab
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -34,11 +34,8 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
-      # ── Rename index.html if panic.html is the main file ────────
-      # If you committed the file as "panic.html", this step
-      # copies it to index.html so GitHub Pages serves it at /
       - name: Ensure index.html exists
         run: |
           if [ ! -f index.html ] && [ -f panic.html ]; then
@@ -46,7 +43,6 @@ jobs:
             echo "Copied panic.html → index.html"
           fi
 
-      # ── Inject secrets into index.html ──────────────────────────
       - name: Inject Supabase credentials and lawyer phone
         run: |
           sed -i \
@@ -60,24 +56,22 @@ jobs:
             index.html
           echo "Secrets injected into index.html"
 
-      # ── Verify injection worked (no placeholders remain) ────────
       - name: Verify no placeholders remain
         run: |
-          if grep -q '%%' index.html; then
+          if grep -q '%%SUPABASE_URL%%\|%%SUPABASE_ANON_KEY%%\|%%LAWYER_PHONE%%' index.html; then
             echo "ERROR: Unreplaced placeholders found in index.html"
-            grep -n '%%' index.html
+            grep -n '%%SUPABASE_URL%%\|%%SUPABASE_ANON_KEY%%\|%%LAWYER_PHONE%%' index.html
             exit 1
           fi
           echo "All placeholders replaced successfully"
 
-      # ── Deploy to GitHub Pages ───────────────────────────────────
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
 
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'   # uploads entire repo root (includes sw.js, manifest.json)
+          path: '.'
 
       - name: Deploy to GitHub Pages
         id: deployment
