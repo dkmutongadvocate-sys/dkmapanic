@@ -266,7 +266,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
   <div class="sent-actions">
     <a class="sent-call-btn" id="sent-call-btn" href="#">📞 Call Lawyer Now</a>
     <a class="sent-wa-btn" id="sent-wa-btn" href="#" target="_blank">💬 WhatsApp Lawyer</a>
-    <button class="sent-back-btn" onclick="showScreen('ready')">← Back to Emergency Button</button>
+    <button class="sent-back-btn" onclick="showReadyScreen()">← Back to Emergency Button</button>
   </div>
   <div class="sent-ref" id="sent-ref"></div>
 </div>
@@ -470,11 +470,16 @@ async function sendAlert(){
 
   document.getElementById('sent-call-btn').href=phone?`tel:${phone}`:'#';
   document.getElementById('sent-wa-btn').href=phone?`https://wa.me/${phone.replace(/\D/g,'')}?text=${waMsg}`:'#';
-  if(data?.id)document.getElementById('sent-ref').textContent=`Alert ID: ${data.id.slice(0,8).toUpperCase()}`;
+  const refEl=document.getElementById('sent-ref');
+  if(data?.id){
+    refEl.textContent=`Alert ID: ${data.id.slice(0,8).toUpperCase()} — awaiting firm response`;
+    startResolutionPoll(data.id);
+  } else {
+    refEl.textContent='Alert sent — awaiting firm response';
+  }
 
   btn.disabled=false;
   showScreen('sent');
-  if(data?.id)startResolutionPoll(data.id);
 }
 
 function getDeviceInfo(ua){
