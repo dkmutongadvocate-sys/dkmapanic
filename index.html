@@ -20,7 +20,7 @@
   --red:#A30000;--red2:#C0392B;--red3:#E74C3C;
   --navy:#0D1B2A;--navy2:#1a2d42;--gold:#B8953A;
   --cream:#F8F5F0;--txt:#1a1a1a;--txt2:#5a5a5a;--txt3:#8a8a8a;
-  --brd:#D9D4CB;--green:#2D6A4F;
+  --brd:#D9D4CB;--green:#2D6A4F;--teal:#1a5c6e;
 }
 html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);color:#fff;overflow-x:hidden}
 
@@ -55,10 +55,10 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
   background:radial-gradient(circle at 50% 45%,rgba(163,0,0,0.15) 0%,transparent 65%);
   pointer-events:none
 }
-.ready-top{text-align:center;margin-bottom:40px;position:relative;z-index:1}
+.ready-top{text-align:center;margin-bottom:32px;position:relative;z-index:1}
 .ready-name{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:4px}
 .ready-firm{font-family:'Playfair Display',serif;font-size:16px;color:rgba(255,255,255,0.8)}
-.panic-btn-wrap{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;margin-bottom:40px}
+.panic-btn-wrap{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;margin-bottom:32px}
 .panic-ring{
   position:absolute;width:200px;height:200px;border-radius:50%;
   border:2px solid rgba(163,0,0,0.3);animation:pulse-ring 2.5s ease-out infinite
@@ -73,8 +73,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
   box-shadow:0 0 0 6px rgba(163,0,0,0.2),0 8px 32px rgba(163,0,0,0.5),inset 0 2px 4px rgba(255,255,255,0.15);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
   transition:transform 0.12s,box-shadow 0.12s;
-  -webkit-user-select:none;user-select:none;
-  touch-action:manipulation
+  -webkit-user-select:none;user-select:none;touch-action:manipulation
 }
 .panic-btn:active{
   transform:scale(0.95);
@@ -82,7 +81,59 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
 }
 .panic-btn-icon{font-size:42px;line-height:1;margin-bottom:2px}
 .panic-btn-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.9)}
-.ready-hint{font-size:11px;color:rgba(255,255,255,0.3);text-align:center;position:relative;z-index:1}
+.ready-hint{font-size:11px;color:rgba(255,255,255,0.3);text-align:center;position:relative;z-index:1;margin-bottom:20px}
+
+/* ── PTT BUTTON ───────────────────────────────────────────────── */
+.ptt-divider{font-size:10px;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:1.5px;text-align:center;position:relative;z-index:1;margin:4px 0 12px}
+.ptt-section{position:relative;z-index:1;width:100%;max-width:340px;display:flex;flex-direction:column;gap:8px}
+.ptt-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  background:rgba(26,92,110,0.25);border:1.5px solid rgba(26,160,200,0.3);
+  color:rgba(200,240,255,0.85);padding:13px 20px;border-radius:12px;
+  font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;
+  cursor:pointer;transition:all 0.2s;-webkit-user-select:none;user-select:none;touch-action:manipulation
+}
+.ptt-btn:hover,.ptt-btn:active{
+  background:rgba(26,92,110,0.45);border-color:rgba(26,160,200,0.6);
+  color:#fff;transform:scale(0.98)
+}
+.ptt-btn-icon{font-size:20px;flex-shrink:0}
+.ptt-desc{font-size:10px;color:rgba(255,255,255,0.22);text-align:center;line-height:1.5;padding:0 8px}
+
+/* ── PTT COMPOSE SCREEN ───────────────────────────────────────── */
+#screen-ptt{
+  background:radial-gradient(ellipse at 50% 25%,#001820 0%,var(--navy) 75%);
+  gap:20px;justify-content:flex-start;padding-top:48px
+}
+.ptt-header{text-align:center;width:100%}
+.ptt-icon{font-size:48px;margin-bottom:10px}
+.ptt-title{font-family:'Playfair Display',serif;font-size:22px;color:#fff;margin-bottom:4px}
+.ptt-sub{font-size:12px;color:rgba(255,255,255,0.5)}
+.ptt-form{width:100%;max-width:420px;display:flex;flex-direction:column;gap:12px}
+.ptt-textarea{
+  width:100%;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:10px;padding:12px 14px;font-size:13px;font-family:'DM Sans',sans-serif;
+  color:#fff;outline:none;resize:none;min-height:80px;transition:border-color 0.15s;line-height:1.5
+}
+.ptt-textarea::placeholder{color:rgba(255,255,255,0.3)}
+.ptt-textarea:focus{border-color:rgba(26,160,200,0.5)}
+.send-ptt-btn{
+  width:100%;background:linear-gradient(135deg,#1a5c6e,#0d3d4a);
+  color:#fff;border:none;padding:15px;border-radius:12px;
+  font-size:15px;font-family:'DM Sans',sans-serif;font-weight:600;
+  cursor:pointer;transition:all 0.15s;letter-spacing:0.3px;
+  box-shadow:0 4px 20px rgba(26,92,110,0.5)
+}
+.send-ptt-btn:hover{background:linear-gradient(135deg,#236a7e,#1a5c6e)}
+.send-ptt-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+/* ── PTT SENT SCREEN ─────────────────────────────────────────── */
+#screen-ptt-sent{
+  background:radial-gradient(ellipse at 50% 30%,#001a1f,var(--navy) 75%);
+  gap:20px
+}
+.ptt-sent-icon{font-size:56px;animation:pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275)}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
 
 /* ── TRIGGER SCREEN ──────────────────────────────────────────── */
 #screen-trigger{
@@ -141,7 +192,6 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
 /* ── SENT SCREEN ─────────────────────────────────────────────── */
 #screen-sent{background:radial-gradient(ellipse at 50% 30%,#1a0000,var(--navy) 80%);gap:20px}
 .sent-icon{font-size:56px;animation:pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275)}
-@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
 .sent-title{font-family:'Playfair Display',serif;font-size:22px;color:#fff}
 .sent-sub{font-size:13px;color:rgba(255,255,255,0.5);text-align:center;line-height:1.7;max-width:300px}
 .sent-actions{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;margin-top:10px}
@@ -172,6 +222,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
 /* ── MISC ─────────────────────────────────────────────────────── */
 .divider-label{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;text-align:center}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+.ptt-sending-spinner{width:48px;height:48px;border:3px solid rgba(26,160,200,0.2);border-top-color:rgba(26,160,200,0.8);border-radius:50%;animation:spin 0.8s linear infinite}
 </style>
 </head>
 <body>
@@ -193,7 +244,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
   </div>
 </div>
 
-<!-- READY: big red button -->
+<!-- READY: big red SOS + PTT button -->
 <div class="screen" id="screen-ready">
   <div class="ready-top">
     <div class="ready-name" id="ready-client-name">Loading…</div>
@@ -208,11 +259,58 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
       <span class="panic-btn-label">SOS</span>
     </button>
   </div>
-  <div class="ready-hint">Tap the button above to send an emergency alert to DKMA</div>
-  <div style="margin-top:24px;font-size:11px;color:rgba(255,255,255,0.2);cursor:pointer" onclick="resetSetup()">Change client code</div>
+  <div class="ready-hint">Tap SOS only for genuine emergencies</div>
+
+  <!-- PTT / Speak Request -->
+  <div class="ptt-divider">or</div>
+  <div class="ptt-section">
+    <button class="ptt-btn" onclick="showPttScreen()">
+      <span class="ptt-btn-icon">📢</span>
+      <div style="text-align:left">
+        <div style="font-size:13px;font-weight:600;line-height:1.2">Request to Speak</div>
+        <div style="font-size:10px;opacity:0.7;margin-top:2px">Notify the firm you need a call</div>
+      </div>
+    </button>
+    <div class="ptt-desc">Use this when you need to speak with DKMA but it's not an emergency. The firm will receive a notification and call you back.</div>
+  </div>
+
+  <div style="margin-top:24px;font-size:11px;color:rgba(255,255,255,0.2);cursor:pointer;position:relative;z-index:1" onclick="resetSetup()">Change client code</div>
 </div>
 
-<!-- TRIGGER: situation + note -->
+<!-- PTT COMPOSE: leave a note + send speak request -->
+<div class="screen" id="screen-ptt">
+  <div class="ptt-header">
+    <div class="ptt-icon">📢</div>
+    <div class="ptt-title">Request to Speak</div>
+    <div class="ptt-sub">The firm will be notified and will call you back shortly</div>
+  </div>
+  <div class="ptt-form">
+    <div class="divider-label">Optional note for the firm</div>
+    <textarea class="ptt-textarea" id="ptt-note" placeholder="e.g. Need to discuss my court date this Friday… or leave blank" maxlength="250" rows="3"></textarea>
+    <button class="send-ptt-btn" id="send-ptt-btn" onclick="sendPttRequest()">📢 Send Speak Request to DKMA</button>
+    <div class="cancel-link" onclick="showScreen('ready')">← Cancel</div>
+  </div>
+</div>
+
+<!-- PTT SENDING -->
+<div class="screen" id="screen-ptt-sending">
+  <div class="ptt-sending-spinner"></div>
+  <div class="sending-title" style="color:rgba(200,240,255,0.9)">Sending Request…</div>
+  <div class="sending-sub">Notifying DKMA that you want to speak with them.</div>
+</div>
+
+<!-- PTT SENT: confirmation -->
+<div class="screen" id="screen-ptt-sent">
+  <div class="ptt-sent-icon">📬</div>
+  <div class="sent-title" style="font-size:20px;color:rgba(200,240,255,0.95)">Request Sent</div>
+  <div class="sent-sub" style="color:rgba(200,240,255,0.6)">DKMA has been notified that you want to speak. A member of the team will call you as soon as possible.</div>
+  <div style="width:100%;max-width:320px;margin-top:16px;display:flex;flex-direction:column;gap:10px">
+    <div id="ptt-ref" style="font-size:11px;color:rgba(255,255,255,0.25);text-align:center;margin-bottom:4px"></div>
+    <button onclick="showScreen('ready')" class="sent-back-btn" style="width:100%">← Back to Home</button>
+  </div>
+</div>
+
+<!-- TRIGGER: situation + note (SOS) -->
 <div class="screen" id="screen-trigger">
   <div class="trigger-header">
     <div class="trigger-icon">🚨</div>
@@ -251,14 +349,14 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
   </div>
 </div>
 
-<!-- SENDING -->
+<!-- SENDING (SOS) -->
 <div class="screen" id="screen-sending">
   <div class="sending-spinner"></div>
   <div class="sending-title">Sending Alert…</div>
   <div class="sending-sub">Your emergency alert is being sent to DKMA. Please stay as calm as possible.</div>
 </div>
 
-<!-- SENT -->
+<!-- SENT (SOS) -->
 <div class="screen" id="screen-sent">
   <div class="sent-icon">🚨</div>
   <div class="sent-title" style="color:#ff6b6b">Alert Active</div>
@@ -274,7 +372,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
 // ── CONFIG ────────────────────────────────────────────────────────
 const SUPABASE_URL='%%SUPABASE_URL%%';
 const SUPABASE_KEY='%%SUPABASE_ANON_KEY%%';
-const LAWYER_PHONE='%%LAWYER_PHONE%%'; // e.g. +254712345678
+const LAWYER_PHONE='%%LAWYER_PHONE%%';
 const STORAGE_KEY='dkma-panic-client';
 
 if(SUPABASE_URL.includes('%%')||SUPABASE_KEY.includes('%%')){
@@ -308,14 +406,12 @@ function showScreen(id){
 async function showReadyScreen(){
   document.getElementById('ready-client-name').textContent=panicClientName||'Client';
   if(panicClientId){
-    // First check localStorage for a cached active alert (works without RLS auth)
     let cachedAlertId=null,cachedAlertTime=null;
     try{
       const stored=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
       if(stored.activeAlertId){cachedAlertId=stored.activeAlertId;cachedAlertTime=stored.activeAlertTime;}
     }catch(e){}
 
-    // Try DB query to verify (may silently fail if RLS blocks anon)
     let data=null;
     try{
       const res=await sb.from('panic_alerts')
@@ -326,7 +422,6 @@ async function showReadyScreen(){
         .limit(1)
         .maybeSingle();
       data=res.data;
-      // If DB says resolved, clear the localStorage cache
       if(!data&&cachedAlertId){
         try{
           const stored=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
@@ -335,17 +430,14 @@ async function showReadyScreen(){
         }catch(e){}
         cachedAlertId=null;
       }
-    }catch(e){/* RLS or network error — fall back to localStorage */}
+    }catch(e){}
 
-    // Use DB result if available, otherwise fall back to localStorage cache
     const activeAlert=data||(cachedAlertId?{id:cachedAlertId,triggered_at:cachedAlertTime,resolved:false}:null);
     if(activeAlert){
-      // Active alert — show sent/locked screen and poll for resolution
       const dt=new Date(activeAlert.triggered_at);
       const timeStr=dt.toLocaleString('en-KE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
       const refEl=document.getElementById('sent-ref');
       if(refEl)refEl.textContent='Alert sent '+timeStr+' — awaiting firm response';
-      // Populate call/WA links from LAWYER_PHONE even on reload
       const phone=LAWYER_PHONE.includes('%%')?'':LAWYER_PHONE;
       const callBtn=document.getElementById('sent-call-btn');
       const waBtn=document.getElementById('sent-wa-btn');
@@ -368,7 +460,6 @@ function startResolutionPoll(alertId){
       clearInterval(_resolutionInterval);
       _resolutionInterval=null;
       document.getElementById('sent-ref').textContent='';
-      // Clear the cached alert from localStorage so reload shows ready screen
       try{
         const stored=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
         delete stored.activeAlertId;delete stored.activeAlertTime;
@@ -395,7 +486,6 @@ async function setupPanic(){
   if(!code){errEl.textContent='Please enter your client code.';return;}
   const btn=document.getElementById('setup-btn');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Verifying…';
-  // Query directly by panic_code value
   const{data:rows,error}=await sb.from('clients').select('id,name,panic_code,sos_enabled').eq('panic_code',code);
   btn.disabled=false;btn.textContent='Activate Emergency Button';
   if(error){
@@ -410,14 +500,66 @@ async function setupPanic(){
     return;
   }
   const data=match;
-  // Expire the code immediately (one-time use)
   await sb.from('clients').update({panic_code:null}).eq('id',data.id);
   panicClientId=data.id;panicClientName=data.name;
   localStorage.setItem(STORAGE_KEY,JSON.stringify({id:data.id,name:data.name}));
   showReadyScreen();
 }
 
-// ── TRIGGER ───────────────────────────────────────────────────────
+// ── PTT (PUSH-TO-TALK / SPEAK REQUEST) ───────────────────────────
+function showPttScreen(){
+  if(!panicClientId){showScreen('setup');return;}
+  document.getElementById('ptt-note').value='';
+  showScreen('ptt');
+}
+
+async function sendPttRequest(){
+  if(!panicClientId){showScreen('setup');return;}
+  const note=(document.getElementById('ptt-note').value||'').trim();
+  const btn=document.getElementById('send-ptt-btn');
+  btn.disabled=true;
+  showScreen('ptt-sending');
+
+  const now=new Date();
+  const payload={
+    client_id:panicClientId,
+    client_name:panicClientName,
+    note:note||null,
+    acknowledged:false,
+    resolved:false,
+    created_at:now.toISOString()
+  };
+
+  const{data,error}=await sb.from('ptt_requests').insert([payload]).select().single();
+
+  if(error){
+    console.error('PTT request error:',error);
+    btn.disabled=false;
+    showScreen('ptt');
+    // Show inline error
+    const errDiv=document.createElement('div');
+    errDiv.style.cssText='background:#1a2d3a;color:#ff9999;padding:12px 16px;border-radius:8px;font-size:12px;text-align:center;margin-top:8px;line-height:1.5';
+    errDiv.textContent='⚠️ Could not send request: '+error.message+'. Please try again or call directly.';
+    const form=document.querySelector('.ptt-form');
+    if(form){
+      const existing=form.querySelector('.ptt-error-msg');
+      if(existing)existing.remove();
+      errDiv.className='ptt-error-msg';
+      form.appendChild(errDiv);
+    }
+    return;
+  }
+
+  const refEl=document.getElementById('ptt-ref');
+  if(refEl&&data?.id){
+    refEl.textContent='Request ID: '+data.id.slice(0,8).toUpperCase()+' · '+now.toLocaleString('en-KE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  }
+
+  btn.disabled=false;
+  showScreen('ptt-sent');
+}
+
+// ── SOS TRIGGER ───────────────────────────────────────────────────
 function triggerPanic(){
   selectedSit=null;
   document.querySelectorAll('.sit-btn').forEach(b=>b.classList.remove('sel'));
@@ -442,7 +584,6 @@ function getLocation(){
   if(!navigator.geolocation){
     dot.className='loc-dot err';
     txt.textContent='Location not available on this device';
-    retry.style.display='none';
     return;
   }
   navigator.geolocation.getCurrentPosition(
@@ -464,7 +605,7 @@ function getLocation(){
   );
 }
 
-// ── SEND ──────────────────────────────────────────────────────────
+// ── SEND SOS ──────────────────────────────────────────────────────
 async function sendAlert(){
   if(!panicClientId){showScreen('setup');return;}
   const note=(document.getElementById('panic-note').value||'').trim();
@@ -494,7 +635,6 @@ async function sendAlert(){
 
   if(error){
     console.error('Panic alert DB error:',error);
-    // Show error screen — don't pretend the alert was sent
     btn.disabled=false;
     showScreen('trigger');
     const errDiv=document.createElement('div');
@@ -508,7 +648,6 @@ async function sendAlert(){
     return;
   }
 
-  // Build WhatsApp / call links
   const phone=LAWYER_PHONE.includes('%%')?'':LAWYER_PHONE;
   const sitLabel={'arrested':'ARRESTED / DETAINED','danger':'IN DANGER','accident':'ACCIDENT / INJURY','other':'EMERGENCY'}[selectedSit||'other']||'EMERGENCY';
   const locPart=currentLat?`📍 Location: https://maps.google.com/?q=${currentLat},${currentLng}`:'📍 Location: Not available';
@@ -520,7 +659,6 @@ async function sendAlert(){
   const refEl=document.getElementById('sent-ref');
   if(data?.id){
     refEl.textContent=`Alert ID: ${data.id.slice(0,8).toUpperCase()} — awaiting firm response`;
-    // Persist active alert ID so reload shows lock screen without needing RLS-protected DB query
     try{
       const stored=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
       stored.activeAlertId=data.id;
