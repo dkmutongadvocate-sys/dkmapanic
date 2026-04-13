@@ -482,7 +482,6 @@ async function sendAlert(){
     note:note||null,
     latitude:currentLat,
     longitude:currentLng,
-    location_accuracy:null,
     maps_link:currentLat&&currentLng?`https://maps.google.com/?q=${currentLat},${currentLng}`:null,
     device_info:device,
     user_agent:ua.slice(0,300),
