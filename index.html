@@ -307,18 +307,41 @@ function showScreen(id){
 
 async function showReadyScreen(){
   document.getElementById('ready-client-name').textContent=panicClientName||'Client';
-  // Check if there's already an unresolved alert — if so go straight to sent screen
   if(panicClientId){
-    const{data}=await sb.from('panic_alerts')
-      .select('id,triggered_at,resolved')
-      .eq('client_id',panicClientId)
-      .neq('resolved',true)
-      .order('triggered_at',{ascending:false})
-      .limit(1)
-      .maybeSingle();
-    if(data){
+    // First check localStorage for a cached active alert (works without RLS auth)
+    let cachedAlertId=null,cachedAlertTime=null;
+    try{
+      const stored=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+      if(stored.activeAlertId){cachedAlertId=stored.activeAlertId;cachedAlertTime=stored.activeAlertTime;}
+    }catch(e){}
+
+    // Try DB query to verify (may silently fail if RLS blocks anon)
+    let data=null;
+    try{
+      const res=await sb.from('panic_alerts')
+        .select('id,triggered_at,resolved')
+        .eq('client_id',panicClientId)
+        .neq('resolved',true)
+        .order('triggered_at',{ascending:false})
+        .limit(1)
+        .maybeSingle();
+      data=res.data;
+      // If DB says resolved, clear the localStorage cache
+      if(!data&&cachedAlertId){
+        try{
+          const stored=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+          delete stored.activeAlertId;delete stored.activeAlertTime;
+          localStorage.setItem(STORAGE_KEY,JSON.stringify(stored));
+        }catch(e){}
+        cachedAlertId=null;
+      }
+    }catch(e){/* RLS or network error — fall back to localStorage */}
+
+    // Use DB result if available, otherwise fall back to localStorage cache
+    const activeAlert=data||(cachedAlertId?{id:cachedAlertId,triggered_at:cachedAlertTime,resolved:false}:null);
+    if(activeAlert){
       // Active alert — show sent/locked screen and poll for resolution
-      const dt=new Date(data.triggered_at);
+      const dt=new Date(activeAlert.triggered_at);
       const timeStr=dt.toLocaleString('en-KE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
       const refEl=document.getElementById('sent-ref');
       if(refEl)refEl.textContent='Alert sent '+timeStr+' — awaiting firm response';
@@ -329,7 +352,7 @@ async function showReadyScreen(){
       if(callBtn)callBtn.href=phone?'tel:'+phone:'#';
       if(waBtn)waBtn.href=phone?'https://wa.me/'+phone.replace(/\D/g,''):'#';
       showScreen('sent');
-      startResolutionPoll(data.id);
+      startResolutionPoll(activeAlert.id);
       return;
     }
   }
@@ -345,6 +368,12 @@ function startResolutionPoll(alertId){
       clearInterval(_resolutionInterval);
       _resolutionInterval=null;
       document.getElementById('sent-ref').textContent='';
+      // Clear the cached alert from localStorage so reload shows ready screen
+      try{
+        const stored=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+        delete stored.activeAlertId;delete stored.activeAlertTime;
+        localStorage.setItem(STORAGE_KEY,JSON.stringify(stored));
+      }catch(e){}
       showReadyScreen();
     }
   },15000);
@@ -492,6 +521,13 @@ async function sendAlert(){
   const refEl=document.getElementById('sent-ref');
   if(data?.id){
     refEl.textContent=`Alert ID: ${data.id.slice(0,8).toUpperCase()} — awaiting firm response`;
+    // Persist active alert ID so reload shows lock screen without needing RLS-protected DB query
+    try{
+      const stored=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+      stored.activeAlertId=data.id;
+      stored.activeAlertTime=data.triggered_at||new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(stored));
+    }catch(e){}
     startResolutionPoll(data.id);
   } else {
     refEl.textContent='Alert sent — awaiting firm response';
