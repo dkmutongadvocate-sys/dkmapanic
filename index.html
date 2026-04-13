@@ -293,7 +293,7 @@ let selectedSit=null;
 function init(){
   const saved=localStorage.getItem(STORAGE_KEY);
   if(saved){
-    try{const d=JSON.parse(saved);panicClientId=d.id;panicClientName=d.name;showReadyScreen();}
+    try{const d=JSON.parse(saved);panicClientId=d.id;panicClientName=d.name;showReadyScreen().catch(()=>showScreen('setup'));}
     catch(e){localStorage.removeItem(STORAGE_KEY);showScreen('setup');}
   } else {
     showScreen('setup');
@@ -322,6 +322,12 @@ async function showReadyScreen(){
       const timeStr=dt.toLocaleString('en-KE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
       const refEl=document.getElementById('sent-ref');
       if(refEl)refEl.textContent='Alert sent '+timeStr+' — awaiting firm response';
+      // Populate call/WA links from LAWYER_PHONE even on reload
+      const phone=LAWYER_PHONE.includes('%%')?'':LAWYER_PHONE;
+      const callBtn=document.getElementById('sent-call-btn');
+      const waBtn=document.getElementById('sent-wa-btn');
+      if(callBtn)callBtn.href=phone?'tel:'+phone:'#';
+      if(waBtn)waBtn.href=phone?'https://wa.me/'+phone.replace(/\D/g,''):'#';
       showScreen('sent');
       startResolutionPoll(data.id);
       return;
@@ -360,15 +366,15 @@ async function setupPanic(){
   if(!code){errEl.textContent='Please enter your client code.';return;}
   const btn=document.getElementById('setup-btn');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Verifying…';
-  // Fetch clients with a panic_code set, match client-side to avoid PostgREST type errors
-  const{data:rows,error}=await sb.from('clients').select('id,name,panic_code,sos_enabled').not('panic_code','is',null);
+  // Query directly by panic_code value
+  const{data:rows,error}=await sb.from('clients').select('id,name,panic_code,sos_enabled').eq('panic_code',code);
   btn.disabled=false;btn.textContent='Activate Emergency Button';
   if(error){
     errEl.style.color='#ff7070';
     errEl.textContent='Connection error: '+error.message;
     return;
   }
-  const match=(rows||[]).find(r=>r.panic_code===code&&r.sos_enabled!==false);
+  const match=(rows||[]).find(r=>r.sos_enabled!==false);
   if(!match){
     errEl.style.color='#ff7070';
     errEl.textContent='Client code not found. Please check with the firm.';
@@ -459,8 +465,19 @@ async function sendAlert(){
   const{data,error}=await sb.from('panic_alerts').insert([payload]).select().single();
 
   if(error){
-    // Still show sent screen — alert may have partially gone through
     console.error('Panic alert DB error:',error);
+    // Show error screen — don't pretend the alert was sent
+    btn.disabled=false;
+    showScreen('trigger');
+    const errDiv=document.createElement('div');
+    errDiv.style.cssText='background:#5a0000;color:#ffaaaa;padding:12px 16px;border-radius:8px;font-size:12px;text-align:center;margin-top:8px;line-height:1.5';
+    errDiv.textContent='⚠️ Failed to send alert: '+error.message+'. Check your connection and try again.';
+    const form=document.querySelector('.trigger-form');
+    const existing=form.querySelector('.send-error-msg');
+    if(existing)existing.remove();
+    errDiv.className='send-error-msg';
+    form.appendChild(errDiv);
+    return;
   }
 
   // Build WhatsApp / call links
