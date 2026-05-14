@@ -83,6 +83,50 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
 .panic-btn-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.9)}
 .ready-hint{font-size:11px;color:rgba(255,255,255,0.3);text-align:center;position:relative;z-index:1;margin-bottom:20px}
 
+/* ── PTT BUTTON ───────────────────────────────────────────────── */
+.ptt-divider{font-size:10px;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:1.5px;text-align:center;position:relative;z-index:1;margin:4px 0 12px}
+.ptt-section{position:relative;z-index:1;width:100%;max-width:340px;display:flex;flex-direction:column;gap:8px}
+.ptt-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  background:rgba(26,92,110,0.25);border:1.5px solid rgba(26,160,200,0.3);
+  color:rgba(200,240,255,0.85);padding:13px 20px;border-radius:12px;
+  font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;
+  cursor:pointer;transition:all 0.2s;-webkit-user-select:none;user-select:none;touch-action:manipulation
+}
+.ptt-btn:hover,.ptt-btn:active{
+  background:rgba(26,92,110,0.45);border-color:rgba(26,160,200,0.6);
+  color:#fff;transform:scale(0.98)
+}
+.ptt-btn-icon{font-size:20px;flex-shrink:0}
+.ptt-desc{font-size:10px;color:rgba(255,255,255,0.22);text-align:center;line-height:1.5;padding:0 8px}
+
+/* ── PTT COMPOSE SCREEN ───────────────────────────────────────── */
+#screen-ptt{
+  background:radial-gradient(ellipse at 50% 25%,#001820 0%,var(--navy) 75%);
+  gap:20px;justify-content:flex-start;padding-top:48px
+}
+.ptt-header{text-align:center;width:100%}
+.ptt-icon{font-size:48px;margin-bottom:10px}
+.ptt-title{font-family:'Playfair Display',serif;font-size:22px;color:#fff;margin-bottom:4px}
+.ptt-sub{font-size:12px;color:rgba(255,255,255,0.5)}
+.ptt-form{width:100%;max-width:420px;display:flex;flex-direction:column;gap:12px}
+.ptt-textarea{
+  width:100%;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:10px;padding:12px 14px;font-size:13px;font-family:'DM Sans',sans-serif;
+  color:#fff;outline:none;resize:none;min-height:80px;transition:border-color 0.15s;line-height:1.5
+}
+.ptt-textarea::placeholder{color:rgba(255,255,255,0.3)}
+.ptt-textarea:focus{border-color:rgba(26,160,200,0.5)}
+.send-ptt-btn{
+  width:100%;background:linear-gradient(135deg,#1a5c6e,#0d3d4a);
+  color:#fff;border:none;padding:15px;border-radius:12px;
+  font-size:15px;font-family:'DM Sans',sans-serif;font-weight:600;
+  cursor:pointer;transition:all 0.15s;letter-spacing:0.3px;
+  box-shadow:0 4px 20px rgba(26,92,110,0.5)
+}
+.send-ptt-btn:hover{background:linear-gradient(135deg,#236a7e,#1a5c6e)}
+.send-ptt-btn:disabled{opacity:0.5;cursor:not-allowed}
+
 /* ── PTT SENT SCREEN ─────────────────────────────────────────── */
 #screen-ptt-sent{
   background:radial-gradient(ellipse at 50% 30%,#001a1f,var(--navy) 75%);
@@ -126,6 +170,35 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
 .loc-txt{font-size:12px;color:rgba(255,255,255,0.6);flex:1}
 .loc-retry{font-size:11px;color:var(--gold);cursor:pointer;text-decoration:underline;flex-shrink:0}
+.panic-toolkit{display:grid;grid-template-columns:1fr;gap:12px}
+.panic-tool-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:14px}
+.panic-tool-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.panic-tool-title{font-size:13px;font-weight:600;color:#fff}
+.panic-tool-sub{font-size:11px;color:rgba(255,255,255,0.48);line-height:1.5;margin-top:2px}
+.panic-chip{font-size:10px;font-weight:600;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.75);white-space:nowrap}
+.panic-tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.panic-stat{background:rgba(0,0,0,0.14);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px}
+.panic-stat-label{font-size:9px;color:rgba(255,255,255,0.38);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}
+.panic-stat-value{font-size:12px;color:rgba(255,255,255,0.84);line-height:1.5;overflow-wrap:anywhere}
+.panic-tool-actions{display:flex;flex-wrap:wrap;gap:8px}
+.panic-mini-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:rgba(255,255,255,0.84);padding:9px 11px;border-radius:10px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s}
+.panic-mini-btn:hover{background:rgba(255,255,255,0.12)}
+.panic-mini-btn.primary{background:rgba(231,76,60,0.18);border-color:rgba(231,76,60,0.45);color:#fff}
+.panic-mini-btn:disabled{opacity:.45;cursor:not-allowed}
+.panic-log{margin-top:10px;max-height:120px;overflow:auto;white-space:pre-wrap;font-size:11px;line-height:1.55;color:rgba(255,255,255,0.68);background:rgba(0,0,0,0.14);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px}
+.panic-rec-mode{display:flex;border:1px solid rgba(255,255,255,0.14);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.panic-rec-mode button{flex:1;background:transparent;border:none;color:rgba(255,255,255,0.65);padding:10px 12px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer}
+.panic-rec-mode button.active{background:rgba(13,27,42,0.65);color:#fff}
+.panic-rec-label{width:100%;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;padding:11px 13px;font-size:12px;font-family:'DM Sans',sans-serif;color:#fff;outline:none;margin-bottom:10px}
+.panic-rec-label::placeholder{color:rgba(255,255,255,0.32)}
+.panic-rec-preview{display:none;background:#000;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);margin-bottom:10px}
+.panic-rec-preview video{display:block;width:100%;max-height:220px;background:#000}
+.panic-rec-status{background:rgba(0,0,0,0.14);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;text-align:center}
+.panic-rec-timer{font-family:'Playfair Display',serif;font-size:34px;line-height:1;color:#fff}
+.panic-rec-note{font-size:11px;color:rgba(255,255,255,0.52);margin-top:6px}
+.panic-wave{width:100%;height:76px;border-radius:10px;background:rgba(0,0,0,0.16);border:1px solid rgba(255,255,255,0.06);display:block;margin-bottom:10px}
+.panic-player-wrap{display:none;margin-top:10px;background:rgba(0,0,0,0.14);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:10px}
+.panic-player-wrap audio,.panic-player-wrap video{width:100%}
 .send-alert-btn{
   width:100%;background:linear-gradient(135deg,var(--red2),var(--red));
   color:#fff;border:none;padding:15px;border-radius:12px;
@@ -178,6 +251,14 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
 /* ── MISC ─────────────────────────────────────────────────────── */
 .divider-label{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;text-align:center}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+.ptt-sending-spinner{width:48px;height:48px;border:3px solid rgba(26,160,200,0.2);border-top-color:rgba(26,160,200,0.8);border-radius:50%;animation:spin 0.8s linear infinite}
+@media(min-width:860px){
+  .panic-toolkit{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  .panic-tool-grid{grid-template-columns:1fr}
+  .panic-rec-timer{font-size:30px}
+}
 </style>
 </head>
 <body>
@@ -216,7 +297,53 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
   </div>
   <div class="ready-hint">Tap SOS only for genuine emergencies</div>
 
+  <!-- PTT / Speak Request -->
+  <div class="ptt-divider">or</div>
+  <div class="ptt-section">
+    <button class="ptt-btn" onclick="showPttScreen()">
+      <span class="ptt-btn-icon">📢</span>
+      <div style="text-align:left">
+        <div style="font-size:13px;font-weight:600;line-height:1.2">Request to Speak</div>
+        <div style="font-size:10px;opacity:0.7;margin-top:2px">Notify the firm you need a call</div>
+      </div>
+    </button>
+    <div class="ptt-desc">Use this when you need to speak with DKMA but it's not an emergency. The firm will receive a notification and call you back.</div>
+  </div>
+
   <div style="margin-top:24px;font-size:11px;color:rgba(255,255,255,0.2);cursor:pointer;position:relative;z-index:1" onclick="resetSetup()">Change client code</div>
+</div>
+
+<!-- PTT COMPOSE: leave a note + send speak request -->
+<div class="screen" id="screen-ptt">
+  <div class="ptt-header">
+    <div class="ptt-icon">📢</div>
+    <div class="ptt-title">Request to Speak</div>
+    <div class="ptt-sub">The firm will be notified and will call you back shortly</div>
+  </div>
+  <div class="ptt-form">
+    <div class="divider-label">Optional note for the firm</div>
+    <textarea class="ptt-textarea" id="ptt-note" placeholder="e.g. Need to discuss my court date this Friday… or leave blank" maxlength="250" rows="3"></textarea>
+    <button class="send-ptt-btn" id="send-ptt-btn" onclick="sendPttRequest()">📢 Send Speak Request to DKMA</button>
+    <div class="cancel-link" onclick="showScreen('ready')">← Cancel</div>
+  </div>
+</div>
+
+<!-- PTT SENDING -->
+<div class="screen" id="screen-ptt-sending">
+  <div class="ptt-sending-spinner"></div>
+  <div class="sending-title" style="color:rgba(200,240,255,0.9)">Sending Request…</div>
+  <div class="sending-sub">Notifying DKMA that you want to speak with them.</div>
+</div>
+
+<!-- PTT SENT: confirmation -->
+<div class="screen" id="screen-ptt-sent">
+  <div class="ptt-sent-icon">📬</div>
+  <div class="sent-title" style="font-size:20px;color:rgba(200,240,255,0.95)">Request Sent</div>
+  <div class="sent-sub" style="color:rgba(200,240,255,0.6)">DKMA has been notified that you want to speak. A member of the team will call you as soon as possible.</div>
+  <div style="width:100%;max-width:320px;margin-top:16px;display:flex;flex-direction:column;gap:10px">
+    <div id="ptt-ref" style="font-size:11px;color:rgba(255,255,255,0.25);text-align:center;margin-bottom:4px"></div>
+    <button onclick="showScreen('ready')" class="sent-back-btn" style="width:100%">← Back to Home</button>
+  </div>
 </div>
 
 <!-- TRIGGER: situation + note (SOS) -->
@@ -252,6 +379,64 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
       <div class="loc-dot loading" id="loc-dot"></div>
       <div class="loc-txt" id="loc-txt">Getting your location…</div>
       <span class="loc-retry" id="loc-retry" style="display:none" onclick="getLocation()">Retry</span>
+    </div>
+    <div class="panic-toolkit">
+      <div class="panic-tool-card">
+        <div class="panic-tool-head">
+          <div>
+            <div class="panic-tool-title">Live Location Tracker</div>
+            <div class="panic-tool-sub">Keep your position updating while you are in distress.</div>
+          </div>
+          <span class="panic-chip" id="panic-track-chip">Idle</span>
+        </div>
+        <div class="panic-tool-grid">
+          <div class="panic-stat">
+            <div class="panic-stat-label">Coordinates</div>
+            <div class="panic-stat-value" id="panic-loc-coords">Not captured yet</div>
+          </div>
+          <div class="panic-stat">
+            <div class="panic-stat-label">Accuracy</div>
+            <div class="panic-stat-value" id="panic-loc-accuracy">Waiting for first fix</div>
+          </div>
+        </div>
+        <div class="panic-tool-actions">
+          <button type="button" class="panic-mini-btn primary" id="panic-loc-start-btn" onclick="panicStartLocationTracking()">Start Tracking</button>
+          <button type="button" class="panic-mini-btn" id="panic-loc-stop-btn" onclick="panicStopLocationTracking()">Stop</button>
+          <button type="button" class="panic-mini-btn" id="panic-loc-open-btn" onclick="panicOpenCurrentMap()">Open Map</button>
+          <button type="button" class="panic-mini-btn" id="panic-loc-download-btn" onclick="panicDownloadLocationLog()">Download Log</button>
+        </div>
+        <div class="panic-log" id="panic-location-log">No location points captured yet.</div>
+      </div>
+      <div class="panic-tool-card">
+        <div class="panic-tool-head">
+          <div>
+            <div class="panic-tool-title">Panic Evidence Recorder</div>
+            <div class="panic-tool-sub">Capture audio or video evidence locally on this device while you alert the firm.</div>
+          </div>
+          <span class="panic-chip" id="panic-rec-chip">Ready</span>
+        </div>
+        <div class="panic-rec-mode">
+          <button type="button" id="panic-mode-audio-btn" class="active" onclick="panicSetMode('audio')">🎙 Audio</button>
+          <button type="button" id="panic-mode-video-btn" onclick="panicSetMode('video')">📹 Audio + Video</button>
+        </div>
+        <input type="text" class="panic-rec-label" id="panic-rec-label" placeholder="Label this evidence clip (optional)"/>
+        <div class="panic-rec-preview" id="panic-preview-wrap">
+          <video id="panic-preview-video" autoplay muted playsinline></video>
+        </div>
+        <div class="panic-rec-status">
+          <div class="panic-rec-timer" id="panic-rec-timer">00:00</div>
+          <div class="panic-rec-note" id="panic-rec-status">Ready to record locally on this device</div>
+        </div>
+        <canvas class="panic-wave" id="panic-waveform" width="720" height="76"></canvas>
+        <div class="panic-tool-actions">
+          <button type="button" class="panic-mini-btn primary" id="panic-rec-start-btn" onclick="panicStartCapture()">Start Recording</button>
+          <button type="button" class="panic-mini-btn" id="panic-rec-stop-btn" onclick="panicStopCapture()">Stop</button>
+          <button type="button" class="panic-mini-btn" id="panic-rec-download-btn" onclick="panicDownloadCapture()">Download Clip</button>
+        </div>
+        <div class="panic-player-wrap" id="panic-player-wrap">
+          <div id="panic-player-host"></div>
+        </div>
+      </div>
     </div>
     <button class="send-alert-btn" id="send-alert-btn" onclick="sendAlert()">🆘 Send Alert to DKMA Now</button>
     <div class="cancel-link" onclick="showReadyScreen()">← Cancel</div>
@@ -295,6 +480,11 @@ let panicClientId=null;
 let panicClientName='';
 let currentLat=null,currentLng=null,locationError=null;
 let selectedSit=null;
+let panicTrackWatchId=null,panicTrackPoints=[],panicTrackLastMapLink='',panicTrackStartedAt=null;
+let panicCaptureMode='audio';
+let panicMediaRecorder=null,panicMediaChunks=[],panicMediaStream=null,panicMediaBlob=null,panicMediaUrl='';
+let panicCaptureStartedAt=null,panicCaptureTimerInterval=null;
+let panicAnalyser=null,panicAudioCtxLocal=null,panicWaveAnim=null;
 
 // ── INIT ──────────────────────────────────────────────────────────
 function init(){
@@ -310,9 +500,15 @@ function init(){
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+id).classList.add('active');
+  panicRefreshUi();
 }
 
 async function showReadyScreen(){
+  panicStopLocationTracking(false);
+  if(panicMediaRecorder&&panicMediaRecorder.state==='recording'){
+    try{panicMediaRecorder.stop();}catch(e){}
+  }
+  panicCleanupMedia();
   document.getElementById('ready-client-name').textContent=panicClientName||'Client';
   if(panicClientId){
     let cachedAlertId=null,cachedAlertTime=null;
@@ -382,6 +578,10 @@ function startResolutionPoll(alertId){
 function resetSetup(){
   localStorage.removeItem(STORAGE_KEY);
   panicClientId=null;panicClientName='';
+  panicStopLocationTracking(false);
+  if(panicMediaUrl){try{URL.revokeObjectURL(panicMediaUrl);}catch(e){}}
+  panicMediaUrl='';panicMediaBlob=null;
+  panicCleanupMedia();
   document.getElementById('setup-code').value='';
   document.getElementById('setup-error').textContent='';
   showScreen('setup');
@@ -415,13 +615,81 @@ async function setupPanic(){
   showReadyScreen();
 }
 
+// ── PTT (PUSH-TO-TALK / SPEAK REQUEST) ───────────────────────────
+function showPttScreen(){
+  if(!panicClientId){showScreen('setup');return;}
+  document.getElementById('ptt-note').value='';
+  showScreen('ptt');
+}
+
+async function sendPttRequest(){
+  if(!panicClientId){showScreen('setup');return;}
+  const note=(document.getElementById('ptt-note').value||'').trim();
+  const btn=document.getElementById('send-ptt-btn');
+  btn.disabled=true;
+  showScreen('ptt-sending');
+
+  const now=new Date();
+  const payload={
+    client_id:panicClientId,
+    client_name:panicClientName,
+    note:note||null,
+    acknowledged:false,
+    resolved:false,
+    created_at:now.toISOString()
+  };
+
+  const{data,error}=await sb.from('ptt_requests').insert([payload]).select().single();
+
+  if(error){
+    console.error('PTT request error:',error);
+    btn.disabled=false;
+    showScreen('ptt');
+    // Show inline error
+    const errDiv=document.createElement('div');
+    errDiv.style.cssText='background:#1a2d3a;color:#ff9999;padding:12px 16px;border-radius:8px;font-size:12px;text-align:center;margin-top:8px;line-height:1.5';
+    errDiv.textContent='⚠️ Could not send request: '+error.message+'. Please try again or call directly.';
+    const form=document.querySelector('.ptt-form');
+    if(form){
+      const existing=form.querySelector('.ptt-error-msg');
+      if(existing)existing.remove();
+      errDiv.className='ptt-error-msg';
+      form.appendChild(errDiv);
+    }
+    return;
+  }
+
+  const refEl=document.getElementById('ptt-ref');
+  if(refEl&&data?.id){
+    refEl.textContent='Request ID: '+data.id.slice(0,8).toUpperCase()+' · '+now.toLocaleString('en-KE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  }
+
+  btn.disabled=false;
+  showScreen('ptt-sent');
+}
+
 // ── SOS TRIGGER ───────────────────────────────────────────────────
 function triggerPanic(){
   selectedSit=null;
+  currentLat=null;currentLng=null;locationError=null;
   document.querySelectorAll('.sit-btn').forEach(b=>b.classList.remove('sel'));
   document.getElementById('panic-note').value='';
+  panicTrackPoints=[];
+  panicTrackLastMapLink='';
+  panicStopLocationTracking(false);
+  if(panicMediaUrl){try{URL.revokeObjectURL(panicMediaUrl);}catch(e){}}
+  panicMediaUrl='';panicMediaBlob=null;
+  panicCleanupMedia();
+  const host=document.getElementById('panic-player-host');
+  const wrap=document.getElementById('panic-player-wrap');
+  if(host)host.innerHTML='';
+  if(wrap)wrap.style.display='none';
+  const timer=document.getElementById('panic-rec-timer');
+  const status=document.getElementById('panic-rec-status');
+  if(timer)timer.textContent='00:00';
+  if(status)status.textContent='Ready to record locally on this device';
   showScreen('trigger');
-  getLocation();
+  panicStartLocationTracking(true);
 }
 
 function selectSit(sit){
@@ -431,34 +699,298 @@ function selectSit(sit){
 }
 
 function getLocation(){
+  panicStartLocationTracking(true);
+}
+
+function panicRefreshUi(){
+  const trackChip=document.getElementById('panic-track-chip');
+  const startBtn=document.getElementById('panic-loc-start-btn');
+  const stopBtn=document.getElementById('panic-loc-stop-btn');
+  const openBtn=document.getElementById('panic-loc-open-btn');
+  const dlBtn=document.getElementById('panic-loc-download-btn');
+  if(trackChip)trackChip.textContent=panicTrackWatchId!==null?'Tracking':'Idle';
+  if(startBtn)startBtn.disabled=panicTrackWatchId!==null;
+  if(stopBtn)stopBtn.disabled=panicTrackWatchId===null;
+  if(openBtn)openBtn.disabled=!panicTrackLastMapLink;
+  if(dlBtn)dlBtn.disabled=!panicTrackPoints.length;
+
+  const recording=!!(panicMediaRecorder&&panicMediaRecorder.state==='recording');
+  const recChip=document.getElementById('panic-rec-chip');
+  const recStart=document.getElementById('panic-rec-start-btn');
+  const recStop=document.getElementById('panic-rec-stop-btn');
+  const recDownload=document.getElementById('panic-rec-download-btn');
+  const previewWrap=document.getElementById('panic-preview-wrap');
+  const modeAudio=document.getElementById('panic-mode-audio-btn');
+  const modeVideo=document.getElementById('panic-mode-video-btn');
+  if(recChip)recChip.textContent=recording?'Recording':(panicMediaBlob?'Captured':'Ready');
+  if(recStart)recStart.disabled=recording;
+  if(recStop)recStop.disabled=!recording;
+  if(recDownload)recDownload.disabled=!panicMediaBlob;
+  if(previewWrap)previewWrap.style.display=panicCaptureMode==='video'?'block':'none';
+  if(modeAudio)modeAudio.classList.toggle('active',panicCaptureMode==='audio');
+  if(modeVideo)modeVideo.classList.toggle('active',panicCaptureMode==='video');
+}
+
+function panicRenderLocationLog(){
+  const log=document.getElementById('panic-location-log');
+  const coordsEl=document.getElementById('panic-loc-coords');
+  const accEl=document.getElementById('panic-loc-accuracy');
   const dot=document.getElementById('loc-dot');
   const txt=document.getElementById('loc-txt');
   const retry=document.getElementById('loc-retry');
-  dot.className='loc-dot loading';
-  txt.textContent='Getting your location…';
-  retry.style.display='none';
-  if(!navigator.geolocation){
-    dot.className='loc-dot err';
-    txt.textContent='Location not available on this device';
+  const latest=panicTrackPoints[panicTrackPoints.length-1];
+
+  if(coordsEl)coordsEl.textContent=latest?`${latest.lat.toFixed(6)}, ${latest.lng.toFixed(6)}`:'Not captured yet';
+  if(accEl)accEl.textContent=latest?`${Math.round(latest.accuracy)}m accuracy · ${new Date(latest.ts).toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}`:(locationError?'Location unavailable':'Waiting for first fix');
+
+  if(dot&&txt&&retry){
+    if(latest){
+      dot.className='loc-dot got';
+      txt.textContent=`Live location active (±${Math.round(latest.accuracy)}m accuracy)`;
+      retry.style.display='none';
+    }else if(locationError){
+      dot.className='loc-dot err';
+      txt.textContent='Could not get location — alert will still send';
+      retry.style.display='inline';
+    }else if(panicTrackWatchId!==null){
+      dot.className='loc-dot loading';
+      txt.textContent='Getting your location…';
+      retry.style.display='none';
+    }else{
+      dot.className='loc-dot';
+      txt.textContent='Location not started yet';
+      retry.style.display='inline';
+    }
+  }
+
+  if(!log)return;
+  if(!panicTrackPoints.length){
+    log.textContent=locationError?'Location permission denied or unavailable.':'No location points captured yet.';
     return;
   }
-  navigator.geolocation.getCurrentPosition(
+  log.textContent=panicTrackPoints.map((p,i)=>
+    `${i+1}. ${new Date(p.ts).toLocaleString('en-KE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'})}\n`+
+    `   Lat ${p.lat.toFixed(6)}, Lng ${p.lng.toFixed(6)} | Accuracy ${Math.round(p.accuracy)}m`
+  ).join('\n\n');
+}
+
+function panicStartLocationTracking(forceFresh){
+  if(!navigator.geolocation){
+    locationError='Location not available on this device';
+    panicRenderLocationLog();
+    panicRefreshUi();
+    return;
+  }
+  if(forceFresh&&panicTrackWatchId!==null){
+    try{navigator.geolocation.clearWatch(panicTrackWatchId);}catch(e){}
+    panicTrackWatchId=null;
+  }
+  if(panicTrackWatchId!==null)return;
+  locationError=null;
+  panicTrackStartedAt=Date.now();
+  panicRenderLocationLog();
+  panicTrackWatchId=navigator.geolocation.watchPosition(
     pos=>{
       currentLat=pos.coords.latitude;
       currentLng=pos.coords.longitude;
-      const acc=Math.round(pos.coords.accuracy);
-      dot.className='loc-dot got';
-      txt.textContent=`Location captured (±${acc}m accuracy)`;
-      retry.style.display='none';
+      locationError=null;
+      const pt={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy,ts:new Date().toISOString()};
+      const last=panicTrackPoints[panicTrackPoints.length-1];
+      if(!last||Math.abs(last.lat-pt.lat)>0.00001||Math.abs(last.lng-pt.lng)>0.00001||Math.abs(new Date(last.ts)-new Date(pt.ts))>15000){
+        panicTrackPoints.push(pt);
+      }else{
+        panicTrackPoints[panicTrackPoints.length-1]=pt;
+      }
+      panicTrackLastMapLink=`https://maps.google.com/?q=${pt.lat},${pt.lng}`;
+      panicRenderLocationLog();
+      panicRefreshUi();
     },
     err=>{
-      locationError=err.message;
-      dot.className='loc-dot err';
-      txt.textContent='Could not get location — alert will still send';
-      retry.style.display='block';
+      locationError=err?.message||'Could not get location';
+      panicStopLocationTracking(false);
+      panicRenderLocationLog();
+      panicRefreshUi();
     },
-    {timeout:10000,enableHighAccuracy:true}
+    {enableHighAccuracy:true,maximumAge:5000,timeout:15000}
   );
+  panicRefreshUi();
+}
+
+function panicStopLocationTracking(refresh){
+  if(panicTrackWatchId!==null){
+    try{navigator.geolocation.clearWatch(panicTrackWatchId);}catch(e){}
+  }
+  panicTrackWatchId=null;
+  if(refresh!==false)panicRefreshUi();
+}
+
+function panicOpenCurrentMap(){
+  if(!panicTrackLastMapLink)return;
+  window.open(panicTrackLastMapLink,'_blank','noopener');
+}
+
+function panicDownloadLocationLog(){
+  if(!panicTrackPoints.length)return;
+  const text=[
+    'DKMA Panic Location Log',
+    '=======================',
+    'Client: '+(panicClientName||'Client'),
+    'Started: '+(panicTrackStartedAt?new Date(panicTrackStartedAt).toLocaleString('en-KE'):'-'),
+    'Points: '+panicTrackPoints.length,
+    '',
+    ...panicTrackPoints.map((p,i)=>`${i+1}. ${p.ts} | ${p.lat}, ${p.lng} | accuracy ${Math.round(p.accuracy)}m`)
+  ].join('\n');
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='panic-location-log.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),500);
+}
+
+function panicSetMode(mode){
+  if(panicMediaRecorder&&panicMediaRecorder.state==='recording')return;
+  panicCaptureMode=mode==='video'?'video':'audio';
+  panicRefreshUi();
+}
+
+function panicFormatDuration(totalSec){
+  const secs=Math.max(0,Math.floor(Number(totalSec)||0));
+  const mm=String(Math.floor(secs/60)).padStart(2,'0');
+  const ss=String(secs%60).padStart(2,'0');
+  return mm+':'+ss;
+}
+
+function panicTickTimer(){
+  const el=document.getElementById('panic-rec-timer');
+  if(!el||!panicCaptureStartedAt)return;
+  el.textContent=panicFormatDuration((Date.now()-panicCaptureStartedAt)/1000);
+}
+
+function panicWaveLoop(){
+  const canvas=document.getElementById('panic-waveform');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const w=canvas.width,h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='rgba(255,255,255,0.04)';
+  ctx.fillRect(0,0,w,h);
+  if(panicAnalyser){
+    const data=new Uint8Array(panicAnalyser.frequencyBinCount);
+    panicAnalyser.getByteTimeDomainData(data);
+    ctx.strokeStyle='#E74C3C';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let i=0;i<data.length;i++){
+      const x=(i/(data.length-1))*w;
+      const y=(data[i]/255)*h;
+      if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }else{
+    ctx.strokeStyle='rgba(255,255,255,0.18)';
+    ctx.beginPath();
+    ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();
+  }
+  panicWaveAnim=requestAnimationFrame(panicWaveLoop);
+}
+
+function panicStopWave(){
+  if(panicWaveAnim){cancelAnimationFrame(panicWaveAnim);panicWaveAnim=null;}
+  panicAnalyser=null;
+  if(panicAudioCtxLocal){try{panicAudioCtxLocal.close();}catch(e){} panicAudioCtxLocal=null;}
+}
+
+function panicCleanupMedia(){
+  if(panicMediaStream){try{panicMediaStream.getTracks().forEach(t=>t.stop());}catch(e){}}
+  panicMediaStream=null;
+  const preview=document.getElementById('panic-preview-video');
+  if(preview)preview.srcObject=null;
+  panicMediaRecorder=null;
+  panicMediaChunks=[];
+  panicCaptureStartedAt=null;
+  if(panicCaptureTimerInterval){clearInterval(panicCaptureTimerInterval);panicCaptureTimerInterval=null;}
+  panicStopWave();
+}
+
+async function panicStartCapture(){
+  try{
+    if(!navigator.mediaDevices?.getUserMedia){alert('This browser cannot access microphone or camera capture.');return;}
+    panicMediaChunks=[];
+    panicMediaBlob=null;
+    if(panicMediaUrl){try{URL.revokeObjectURL(panicMediaUrl);}catch(e){} panicMediaUrl='';}
+    const constraints=panicCaptureMode==='video'?{audio:true,video:{facingMode:'environment'}}:{audio:true,video:false};
+    panicMediaStream=await navigator.mediaDevices.getUserMedia(constraints);
+    const preview=document.getElementById('panic-preview-video');
+    if(preview&&panicCaptureMode==='video')preview.srcObject=panicMediaStream;
+    const mimeTypes=panicCaptureMode==='video'
+      ? ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4']
+      : ['audio/webm;codecs=opus','audio/webm','audio/mp4'];
+    const mimeType=mimeTypes.find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||'';
+    panicMediaRecorder=new MediaRecorder(panicMediaStream,mimeType?{mimeType}:{});
+    panicMediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size>0)panicMediaChunks.push(e.data);};
+    panicMediaRecorder.onstop=panicOnCaptureStop;
+    panicMediaRecorder.start(250);
+    panicCaptureStartedAt=Date.now();
+    panicTickTimer();
+    panicCaptureTimerInterval=setInterval(panicTickTimer,500);
+    const audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    panicAudioCtxLocal=audioCtx;
+    try{
+      const analyser=audioCtx.createAnalyser();
+      analyser.fftSize=1024;
+      const source=audioCtx.createMediaStreamSource(panicMediaStream);
+      source.connect(analyser);
+      panicAnalyser=analyser;
+    }catch(e){}
+    const statusEl=document.getElementById('panic-rec-status');
+    if(statusEl)statusEl.textContent='Recording… capture evidence locally on this device';
+    const playerWrap=document.getElementById('panic-player-wrap');
+    if(playerWrap)playerWrap.style.display='none';
+    panicWaveLoop();
+    panicRefreshUi();
+  }catch(err){
+    alert('Could not start panic capture: '+(err?.message||'Permission denied'));
+    panicCleanupMedia();
+    panicRefreshUi();
+  }
+}
+
+function panicOnCaptureStop(){
+  const type=(panicMediaRecorder&&panicMediaRecorder.mimeType)||(panicCaptureMode==='video'?'video/webm':'audio/webm');
+  panicMediaBlob=new Blob(panicMediaChunks,{type});
+  panicMediaUrl=URL.createObjectURL(panicMediaBlob);
+  const host=document.getElementById('panic-player-host');
+  const wrap=document.getElementById('panic-player-wrap');
+  if(host&&wrap){
+    host.innerHTML=panicCaptureMode==='video'
+      ? `<video controls playsinline style="width:100%;max-height:240px;border-radius:8px;background:#000" src="${panicMediaUrl}"></video>`
+      : `<audio controls style="width:100%" src="${panicMediaUrl}"></audio>`;
+    wrap.style.display='block';
+  }
+  const statusEl=document.getElementById('panic-rec-status');
+  if(statusEl)statusEl.textContent='Capture complete. Review or download the clip.';
+  panicCleanupMedia();
+  panicRefreshUi();
+}
+
+function panicStopCapture(){
+  if(!panicMediaRecorder||panicMediaRecorder.state!=='recording')return;
+  panicMediaRecorder.stop();
+}
+
+function panicDownloadCapture(){
+  if(!panicMediaBlob)return;
+  const label=(document.getElementById('panic-rec-label')?.value||'panic-evidence').trim().replace(/[\\/:*?"<>|]+/g,'_');
+  const a=document.createElement('a');
+  a.href=panicMediaUrl;
+  a.download=label+'.webm';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 // ── SEND SOS ──────────────────────────────────────────────────────
