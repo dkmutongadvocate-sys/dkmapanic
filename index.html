@@ -476,6 +476,7 @@ const STORAGE_KEY='dkma-panic-client';
 const PANIC_LIVE_BUCKET='matter-documents';
 const PANIC_LIVE_PREFIX='panic-live';
 const PANIC_CHUNK_MS=5000;
+const PANIC_LIVE_FUNCTION='panic-live-upload';
 
 if(SUPABASE_URL.includes('%%')||SUPABASE_KEY.includes('%%')){
   document.body.innerHTML='<div style="padding:40px;text-align:center;color:#ff7070;font-family:sans-serif"><h2>Configuration Error</h2><p style="margin-top:12px;font-size:14px">Supabase credentials not injected. Check GitHub Actions secrets.</p></div>';
@@ -524,14 +525,33 @@ function panicLiveBasePath(alertId){
 function panicLiveSessionFile(alertId){
   return `${panicLiveBasePath(alertId)}/session.json`;
 }
+function panicLiveFunctionUrl(){
+  return `${SUPABASE_URL}/functions/v1/${PANIC_LIVE_FUNCTION}`;
+}
 function panicSafeNamePart(value,fallback='panic-evidence'){
   const raw=String(value||'').trim().replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,'_');
   return raw||fallback;
 }
-async function panicUploadToStorage(path,blob,contentType){
-  const {error}=await sb.storage.from(PANIC_LIVE_BUCKET).upload(path,blob,{upsert:true,contentType});
-  if(error)throw error;
-  return path;
+async function panicInvokeLiveUpload(payload,isForm){
+  const headers={
+    apikey:SUPABASE_KEY,
+    Authorization:`Bearer ${SUPABASE_KEY}`
+  };
+  const opts={method:'POST',headers};
+  if(isForm){
+    opts.body=payload;
+  }else{
+    headers['Content-Type']='application/json';
+    opts.body=JSON.stringify(payload);
+  }
+  const res=await fetch(panicLiveFunctionUrl(),opts);
+  const text=await res.text();
+  let data={};
+  try{data=text?JSON.parse(text):{};}catch(e){}
+  if(!res.ok){
+    throw new Error(data?.error||text||`HTTP ${res.status}`);
+  }
+  return data;
 }
 async function panicUpdateAlertRowLiveFields(){
   if(!activeAlertId)return;
@@ -587,8 +607,12 @@ async function panicPublishLiveSession(reason='update'){
   panicLiveSessionPath=panicLiveSessionFile(activeAlertId);
   try{
     const payload=panicBuildLiveSessionPayload(reason);
-    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-    await panicUploadToStorage(panicLiveSessionPath,blob,'application/json');
+    const result=await panicInvokeLiveUpload({
+      alert_id:activeAlertId,
+      client_id:panicClientId||null,
+      session:payload
+    },false);
+    panicLiveSessionPath=result?.session_path||panicLiveSessionPath;
     panicLiveLastPublishAt=Date.now();
     panicLiveLastError='';
   }catch(err){
@@ -611,20 +635,27 @@ async function panicBeginLiveIncident(alertRow){
 }
 async function panicUploadLiveChunk(blob,kind='chunk'){
   if(!activeAlertId||!blob||!blob.size)return null;
-  const ext=(panicCaptureMode==='video')?'webm':'webm';
-  const stamp=Date.now();
-  const seq=String(++panicLiveChunkSeq).padStart(4,'0');
   const label=panicSafeNamePart(document.getElementById('panic-rec-label')?.value,kind==='final'?'panic-final':'panic-chunk');
-  const folder=kind==='final'?'final':'chunks';
-  const fileName=`${stamp}_${seq}_${label}.${ext}`;
-  const path=`${panicLiveBasePath(activeAlertId)}/${folder}/${fileName}`;
   try{
-    await panicUploadToStorage(path,blob,blob.type||'application/octet-stream');
+    const fd=new FormData();
+    fd.append('alert_id',activeAlertId);
+    if(panicClientId)fd.append('client_id',panicClientId);
+    fd.append('clip_kind',kind);
+    fd.append('mode',panicCaptureMode);
+    fd.append('label',label);
+    fd.append('ts',new Date().toISOString());
+    fd.append('session',JSON.stringify(panicBuildLiveSessionPayload(kind==='final'?'final-clip':'chunk')));
+    const fileName=`${Date.now()}_${String(++panicLiveChunkSeq).padStart(4,'0')}_${label}.webm`;
+    fd.append('file',new File([blob],fileName,{type:blob.type||'application/octet-stream'}));
+    const result=await panicInvokeLiveUpload(fd,true);
+    const path=result?.path||'';
     const item={path,ts:new Date().toISOString(),mode:panicCaptureMode,kind,size:blob.size};
     panicLiveChunks.push(item);
     if(panicLiveChunks.length>24)panicLiveChunks=panicLiveChunks.slice(-24);
     if(kind==='final')panicLiveFinalClipPath=path;
-    await panicPublishLiveSession(kind==='final'?'final-clip':'chunk');
+    panicLiveSessionPath=result?.session_path||panicLiveSessionPath;
+    panicLiveLastPublishAt=Date.now();
+    panicLiveLastError='';
     return path;
   }catch(err){
     panicLiveLastError=err?.message||String(err);
@@ -989,7 +1020,6 @@ function panicStartLocationTracking(forceFresh){
       if(activeAlertId){
         const now=Date.now();
         if(!panicLiveLastPublishAt||now-panicLiveLastPublishAt>4000){
-          panicUpdateAlertRowLiveFields();
           panicPublishLiveSession('location');
         }
       }
@@ -1261,6 +1291,8 @@ async function sendAlert(){
 
   btn.disabled=false;
   showScreen('sent');
+  panicStartLocationTracking(true);
+  panicPublishLiveSession('alert-sent-screen').catch(()=>{});
 }
 
 function getDeviceInfo(ua){
