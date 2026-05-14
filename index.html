@@ -248,6 +248,8 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
 .sent-back-btn:hover{background:rgba(255,255,255,0.07)}
 .sent-ref{font-size:11px;color:rgba(255,255,255,0.25);text-align:center}
 .sent-live-note{font-size:11px;color:rgba(255,255,255,0.46);text-align:center;line-height:1.6;max-width:320px}
+.sent-live-note.warn{color:#FFD98A}
+.sent-live-note.ok{color:#A8E6C0}
 
 /* ── MISC ─────────────────────────────────────────────────────── */
 .divider-label{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;text-align:center}
@@ -501,6 +503,8 @@ let panicLiveChunkSeq=0;
 let panicLiveChunks=[];
 let panicLiveFinalClipPath='';
 let panicLiveLastError='';
+let panicWakeLock=null;
+let panicPageHiddenAt=0;
 
 // ── INIT ──────────────────────────────────────────────────────────
 function init(){
@@ -516,6 +520,11 @@ function init(){
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+id).classList.add('active');
+  if(id==='sent'){
+    panicRequestWakeLock().catch(()=>{});
+  }else{
+    panicReleaseWakeLock().catch(()=>{});
+  }
   panicRefreshUi();
 }
 
@@ -552,6 +561,27 @@ async function panicInvokeLiveUpload(payload,isForm){
     throw new Error(data?.error||text||`HTTP ${res.status}`);
   }
   return data;
+}
+async function panicRequestWakeLock(){
+  try{
+    if(!('wakeLock' in navigator) || document.visibilityState!=='visible' || panicWakeLock)return;
+    panicWakeLock=await navigator.wakeLock.request('screen');
+    panicWakeLock.addEventListener?.('release',()=>{
+      panicWakeLock=null;
+      panicRefreshUi();
+    });
+  }catch(err){
+    console.warn('[panic] wake lock request failed:',err?.message||err);
+  }
+}
+async function panicReleaseWakeLock(){
+  try{
+    if(panicWakeLock)await panicWakeLock.release();
+  }catch(err){
+    console.warn('[panic] wake lock release failed:',err?.message||err);
+  }finally{
+    panicWakeLock=null;
+  }
 }
 async function panicUpdateAlertRowLiveFields(){
   if(!activeAlertId)return;
@@ -733,6 +763,7 @@ function startResolutionPoll(alertId){
       panicPublishLiveSession('resolved').catch(()=>{});
       activeAlertId=null;
       panicLiveSessionPath='';
+      panicReleaseWakeLock().catch(()=>{});
       try{
         const stored=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
         delete stored.activeAlertId;delete stored.activeAlertTime;
@@ -751,6 +782,7 @@ function resetSetup(){
   panicLiveChunks=[];
   panicLiveFinalClipPath='';
   panicLiveChunkSeq=0;
+  panicReleaseWakeLock().catch(()=>{});
   panicStopLocationTracking(false);
   if(panicMediaUrl){try{URL.revokeObjectURL(panicMediaUrl);}catch(e){}}
   panicMediaUrl='';panicMediaBlob=null;
@@ -926,6 +958,23 @@ function panicRefreshUi(){
   if(stopBtn)stopBtn.disabled=panicTrackWatchId===null;
   if(openBtn)openBtn.disabled=!panicTrackLastMapLink;
   if(dlBtn)dlBtn.disabled=!panicTrackPoints.length;
+  const liveNote=document.getElementById('sent-live-note');
+  if(liveNote){
+    if(document.visibilityState!=='visible'){
+      liveNote.classList.remove('ok');
+      liveNote.classList.add('warn');
+      liveNote.textContent='This page is in the background. Phones often pause live location, microphone, or camera when the page is not on screen or the device is locked.';
+    }else if(activeAlertId){
+      liveNote.classList.remove('warn');
+      liveNote.classList.add('ok');
+      liveNote.textContent=panicWakeLock
+        ? 'Alert is active. Screen wake lock is on to help keep live location and uploaded evidence flowing while this page stays visible.'
+        : 'Alert is active. Keep this page open and on screen if you want DKMA to keep receiving live location and uploaded evidence.';
+    }else{
+      liveNote.classList.remove('warn','ok');
+      liveNote.textContent='Keep this page open if you want DKMA to keep receiving your live location and uploaded evidence.';
+    }
+  }
 
   const recording=!!(panicMediaRecorder&&panicMediaRecorder.state==='recording');
   const recChip=document.getElementById('panic-rec-chip');
@@ -1294,6 +1343,25 @@ async function sendAlert(){
   panicStartLocationTracking(true);
   panicPublishLiveSession('alert-sent-screen').catch(()=>{});
 }
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){
+    panicPageHiddenAt=0;
+    if(document.getElementById('screen-sent')?.classList.contains('active')){
+      panicRequestWakeLock().catch(()=>{});
+      if(activeAlertId)panicPublishLiveSession('page-visible').catch(()=>{});
+    }
+  }else{
+    panicPageHiddenAt=Date.now();
+  }
+  panicRefreshUi();
+});
+
+window.addEventListener('pagehide',()=>{
+  if(activeAlertId){
+    panicPublishLiveSession('pagehide').catch(()=>{});
+  }
+});
 
 function getDeviceInfo(ua){
   let os='Unknown OS';
