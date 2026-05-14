@@ -468,6 +468,9 @@ const SUPABASE_URL='%%SUPABASE_URL%%';
 const SUPABASE_KEY='%%SUPABASE_ANON_KEY%%';
 const LAWYER_PHONE='%%LAWYER_PHONE%%';
 const STORAGE_KEY='dkma-panic-client';
+const PANIC_LIVE_BUCKET='matter-documents';
+const PANIC_LIVE_PREFIX='panic-live';
+const PANIC_CHUNK_MS=5000;
 
 if(SUPABASE_URL.includes('%%')||SUPABASE_KEY.includes('%%')){
   document.body.innerHTML='<div style="padding:40px;text-align:center;color:#ff7070;font-family:sans-serif"><h2>Configuration Error</h2><p style="margin-top:12px;font-size:14px">Supabase credentials not injected. Check GitHub Actions secrets.</p></div>';
@@ -485,6 +488,13 @@ let panicCaptureMode='audio';
 let panicMediaRecorder=null,panicMediaChunks=[],panicMediaStream=null,panicMediaBlob=null,panicMediaUrl='';
 let panicCaptureStartedAt=null,panicCaptureTimerInterval=null;
 let panicAnalyser=null,panicAudioCtxLocal=null,panicWaveAnim=null;
+let activeAlertId=null;
+let panicLiveSessionPath='';
+let panicLiveLastPublishAt=0;
+let panicLiveChunkSeq=0;
+let panicLiveChunks=[];
+let panicLiveFinalClipPath='';
+let panicLiveLastError='';
 
 // ── INIT ──────────────────────────────────────────────────────────
 function init(){
@@ -501,6 +511,121 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+id).classList.add('active');
   panicRefreshUi();
+}
+
+function panicLiveBasePath(alertId){
+  return `${PANIC_LIVE_PREFIX}/${alertId}`;
+}
+function panicLiveSessionFile(alertId){
+  return `${panicLiveBasePath(alertId)}/session.json`;
+}
+function panicSafeNamePart(value,fallback='panic-evidence'){
+  const raw=String(value||'').trim().replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,'_');
+  return raw||fallback;
+}
+async function panicUploadToStorage(path,blob,contentType){
+  const {error}=await sb.storage.from(PANIC_LIVE_BUCKET).upload(path,blob,{upsert:true,contentType});
+  if(error)throw error;
+  return path;
+}
+async function panicUpdateAlertRowLiveFields(){
+  if(!activeAlertId)return;
+  const patch={
+    latitude:currentLat,
+    longitude:currentLng,
+    maps_link:currentLat&&currentLng?`https://maps.google.com/?q=${currentLat},${currentLng}`:null
+  };
+  try{
+    const {error}=await sb.from('panic_alerts').update(patch).eq('id',activeAlertId);
+    if(error)throw error;
+  }catch(err){
+    panicLiveLastError=err?.message||String(err);
+    console.warn('[panic live] alert update failed:',panicLiveLastError);
+  }
+}
+function panicBuildLiveSessionPayload(reason='update'){
+  const latestPoint=panicTrackPoints[panicTrackPoints.length-1]||null;
+  const trimmedPoints=panicTrackPoints.slice(-20);
+  const recordingState=panicMediaRecorder&&panicMediaRecorder.state==='recording'?'recording':(panicMediaBlob?'captured':'idle');
+  return {
+    alert_id:activeAlertId,
+    client_id:panicClientId||null,
+    client_name:panicClientName||'',
+    situation:selectedSit||'unspecified',
+    note:(document.getElementById('panic-note')?.value||'').trim()||null,
+    reason,
+    status:recordingState==='recording'?'live':'active',
+    started_at:panicTrackStartedAt?new Date(panicTrackStartedAt).toISOString():null,
+    updated_at:new Date().toISOString(),
+    location:{
+      latitude:currentLat,
+      longitude:currentLng,
+      accuracy:latestPoint?latestPoint.accuracy:null,
+      maps_link:panicTrackLastMapLink||null,
+      points:trimmedPoints
+    },
+    recording:{
+      mode:panicCaptureMode,
+      label:(document.getElementById('panic-rec-label')?.value||'').trim()||null,
+      status:recordingState,
+      started_at:panicCaptureStartedAt?new Date(panicCaptureStartedAt).toISOString():null,
+      duration_seconds:panicCaptureStartedAt?Math.max(0,Math.floor((Date.now()-panicCaptureStartedAt)/1000)):0,
+      latest_chunk_path:panicLiveChunks.length?panicLiveChunks[panicLiveChunks.length-1].path:null,
+      final_clip_path:panicLiveFinalClipPath||null,
+      chunks:panicLiveChunks.slice(-8)
+    },
+    last_error:panicLiveLastError||null
+  };
+}
+async function panicPublishLiveSession(reason='update'){
+  if(!activeAlertId)return;
+  panicLiveSessionPath=panicLiveSessionFile(activeAlertId);
+  try{
+    const payload=panicBuildLiveSessionPayload(reason);
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    await panicUploadToStorage(panicLiveSessionPath,blob,'application/json');
+    panicLiveLastPublishAt=Date.now();
+    panicLiveLastError='';
+  }catch(err){
+    panicLiveLastError=err?.message||String(err);
+    console.warn('[panic live] session upload failed:',panicLiveLastError);
+  }
+}
+async function panicBeginLiveIncident(alertRow){
+  if(!alertRow?.id)return;
+  activeAlertId=alertRow.id;
+  panicLiveSessionPath=panicLiveSessionFile(activeAlertId);
+  panicLiveChunks=[];
+  panicLiveFinalClipPath='';
+  panicLiveChunkSeq=0;
+  panicLiveLastError='';
+  await panicPublishLiveSession('alert-created');
+  if(panicMediaBlob&&panicMediaBlob.size){
+    await panicUploadLiveChunk(panicMediaBlob,'final');
+  }
+}
+async function panicUploadLiveChunk(blob,kind='chunk'){
+  if(!activeAlertId||!blob||!blob.size)return null;
+  const ext=(panicCaptureMode==='video')?'webm':'webm';
+  const stamp=Date.now();
+  const seq=String(++panicLiveChunkSeq).padStart(4,'0');
+  const label=panicSafeNamePart(document.getElementById('panic-rec-label')?.value,kind==='final'?'panic-final':'panic-chunk');
+  const folder=kind==='final'?'final':'chunks';
+  const fileName=`${stamp}_${seq}_${label}.${ext}`;
+  const path=`${panicLiveBasePath(activeAlertId)}/${folder}/${fileName}`;
+  try{
+    await panicUploadToStorage(path,blob,blob.type||'application/octet-stream');
+    const item={path,ts:new Date().toISOString(),mode:panicCaptureMode,kind,size:blob.size};
+    panicLiveChunks.push(item);
+    if(panicLiveChunks.length>24)panicLiveChunks=panicLiveChunks.slice(-24);
+    if(kind==='final')panicLiveFinalClipPath=path;
+    await panicPublishLiveSession(kind==='final'?'final-clip':'chunk');
+    return path;
+  }catch(err){
+    panicLiveLastError=err?.message||String(err);
+    console.warn('[panic live] chunk upload failed:',panicLiveLastError);
+    return null;
+  }
 }
 
 async function showReadyScreen(){
@@ -539,6 +664,8 @@ async function showReadyScreen(){
 
     const activeAlert=data||(cachedAlertId?{id:cachedAlertId,triggered_at:cachedAlertTime,resolved:false}:null);
     if(activeAlert){
+      activeAlertId=activeAlert.id;
+      panicLiveSessionPath=panicLiveSessionFile(activeAlert.id);
       const dt=new Date(activeAlert.triggered_at);
       const timeStr=dt.toLocaleString('en-KE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
       const refEl=document.getElementById('sent-ref');
@@ -549,6 +676,8 @@ async function showReadyScreen(){
       if(callBtn)callBtn.href=phone?'tel:'+phone:'#';
       if(waBtn)waBtn.href=phone?'https://wa.me/'+phone.replace(/\D/g,''):'#';
       showScreen('sent');
+      panicStartLocationTracking(true);
+      panicPublishLiveSession('resume-active-alert').catch(()=>{});
       startResolutionPoll(activeAlert.id);
       return;
     }
@@ -565,6 +694,9 @@ function startResolutionPoll(alertId){
       clearInterval(_resolutionInterval);
       _resolutionInterval=null;
       document.getElementById('sent-ref').textContent='';
+      panicPublishLiveSession('resolved').catch(()=>{});
+      activeAlertId=null;
+      panicLiveSessionPath='';
       try{
         const stored=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
         delete stored.activeAlertId;delete stored.activeAlertTime;
@@ -578,6 +710,11 @@ function startResolutionPoll(alertId){
 function resetSetup(){
   localStorage.removeItem(STORAGE_KEY);
   panicClientId=null;panicClientName='';
+  activeAlertId=null;
+  panicLiveSessionPath='';
+  panicLiveChunks=[];
+  panicLiveFinalClipPath='';
+  panicLiveChunkSeq=0;
   panicStopLocationTracking(false);
   if(panicMediaUrl){try{URL.revokeObjectURL(panicMediaUrl);}catch(e){}}
   panicMediaUrl='';panicMediaBlob=null;
@@ -804,12 +941,20 @@ function panicStartLocationTracking(forceFresh){
       panicTrackLastMapLink=`https://maps.google.com/?q=${pt.lat},${pt.lng}`;
       panicRenderLocationLog();
       panicRefreshUi();
+      if(activeAlertId){
+        const now=Date.now();
+        if(!panicLiveLastPublishAt||now-panicLiveLastPublishAt>4000){
+          panicUpdateAlertRowLiveFields();
+          panicPublishLiveSession('location');
+        }
+      }
     },
     err=>{
       locationError=err?.message||'Could not get location';
       panicStopLocationTracking(false);
       panicRenderLocationLog();
       panicRefreshUi();
+      if(activeAlertId)panicPublishLiveSession('location-error');
     },
     {enableHighAccuracy:true,maximumAge:5000,timeout:15000}
   );
@@ -931,9 +1076,14 @@ async function panicStartCapture(){
       : ['audio/webm;codecs=opus','audio/webm','audio/mp4'];
     const mimeType=mimeTypes.find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||'';
     panicMediaRecorder=new MediaRecorder(panicMediaStream,mimeType?{mimeType}:{});
-    panicMediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size>0)panicMediaChunks.push(e.data);};
+    panicMediaRecorder.ondataavailable=e=>{
+      if(e.data&&e.data.size>0){
+        panicMediaChunks.push(e.data);
+        if(activeAlertId)panicUploadLiveChunk(e.data,'chunk').catch(()=>{});
+      }
+    };
     panicMediaRecorder.onstop=panicOnCaptureStop;
-    panicMediaRecorder.start(250);
+    panicMediaRecorder.start(PANIC_CHUNK_MS);
     panicCaptureStartedAt=Date.now();
     panicTickTimer();
     panicCaptureTimerInterval=setInterval(panicTickTimer,500);
@@ -947,7 +1097,7 @@ async function panicStartCapture(){
       panicAnalyser=analyser;
     }catch(e){}
     const statusEl=document.getElementById('panic-rec-status');
-    if(statusEl)statusEl.textContent='Recording… capture evidence locally on this device';
+    if(statusEl)statusEl.textContent='Recording… publishing evidence for the firm as chunks arrive';
     const playerWrap=document.getElementById('panic-player-wrap');
     if(playerWrap)playerWrap.style.display='none';
     panicWaveLoop();
@@ -959,7 +1109,7 @@ async function panicStartCapture(){
   }
 }
 
-function panicOnCaptureStop(){
+async function panicOnCaptureStop(){
   const type=(panicMediaRecorder&&panicMediaRecorder.mimeType)||(panicCaptureMode==='video'?'video/webm':'audio/webm');
   panicMediaBlob=new Blob(panicMediaChunks,{type});
   panicMediaUrl=URL.createObjectURL(panicMediaBlob);
@@ -972,7 +1122,10 @@ function panicOnCaptureStop(){
     wrap.style.display='block';
   }
   const statusEl=document.getElementById('panic-rec-status');
-  if(statusEl)statusEl.textContent='Capture complete. Review or download the clip.';
+  if(activeAlertId&&panicMediaBlob&&panicMediaBlob.size){
+    await panicUploadLiveChunk(panicMediaBlob,'final');
+  }
+  if(statusEl)statusEl.textContent=activeAlertId?'Capture complete. The latest clip is available to the firm.':'Capture complete. Review or download the clip.';
   panicCleanupMedia();
   panicRefreshUi();
 }
@@ -1046,6 +1199,8 @@ async function sendAlert(){
   document.getElementById('sent-wa-btn').href=phone?`https://wa.me/${phone.replace(/\D/g,'')}?text=${waMsg}`:'#';
   const refEl=document.getElementById('sent-ref');
   if(data?.id){
+    activeAlertId=data.id;
+    panicLiveSessionPath=panicLiveSessionFile(data.id);
     refEl.textContent=`Alert ID: ${data.id.slice(0,8).toUpperCase()} — awaiting firm response`;
     try{
       const stored=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
@@ -1053,6 +1208,7 @@ async function sendAlert(){
       stored.activeAlertTime=data.triggered_at||new Date().toISOString();
       localStorage.setItem(STORAGE_KEY,JSON.stringify(stored));
     }catch(e){}
+    panicBeginLiveIncident(data).catch(()=>{});
     startResolutionPoll(data.id);
   } else {
     refEl.textContent='Alert sent — awaiting firm response';
