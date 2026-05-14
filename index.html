@@ -381,7 +381,33 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
       <div class="loc-txt" id="loc-txt">Getting your location…</div>
       <span class="loc-retry" id="loc-retry" style="display:none" onclick="getLocation()">Retry</span>
     </div>
-    <div class="panic-toolkit">
+    <div style="font-size:11px;color:rgba(255,255,255,0.42);line-height:1.6;text-align:center;padding:4px 8px 0">
+      Live location tracking and evidence recording will appear after you send the SOS, so they stay attached to the active incident.
+    </div>
+    <button class="send-alert-btn" id="send-alert-btn" onclick="sendAlert()">🆘 Send Alert to DKMA Now</button>
+    <div class="cancel-link" onclick="showReadyScreen()">← Cancel</div>
+  </div>
+</div>
+
+<!-- SENDING (SOS) -->
+<div class="screen" id="screen-sending">
+  <div class="sending-spinner"></div>
+  <div class="sending-title">Sending Alert…</div>
+  <div class="sending-sub">Your emergency alert is being sent to DKMA. Please stay as calm as possible.</div>
+</div>
+
+<!-- SENT (SOS) -->
+<div class="screen" id="screen-sent">
+  <div class="sent-icon">🚨</div>
+  <div class="sent-title" style="color:#ff6b6b">Alert Active</div>
+  <div class="sent-sub">DKMA has been notified. Call or WhatsApp the lawyer for the fastest response. You cannot send another alert until this one is resolved by the firm.</div>
+  <div class="sent-actions">
+    <a class="sent-call-btn" id="sent-call-btn" href="#">📞 Call Lawyer Now</a>
+    <a class="sent-wa-btn" id="sent-wa-btn" href="#" target="_blank">💬 WhatsApp Lawyer</a>
+  </div>
+  <div class="sent-ref" id="sent-ref"></div>
+  <div class="sent-live-note" id="sent-live-note">Keep this page open if you want DKMA to keep receiving your live location and uploaded evidence.</div>
+  <div class="panic-toolkit" style="width:100%;max-width:420px;margin-top:18px">
       <div class="panic-tool-card">
         <div class="panic-tool-head">
           <div>
@@ -439,29 +465,6 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
         </div>
       </div>
     </div>
-    <button class="send-alert-btn" id="send-alert-btn" onclick="sendAlert()">🆘 Send Alert to DKMA Now</button>
-    <div class="cancel-link" onclick="showReadyScreen()">← Cancel</div>
-  </div>
-</div>
-
-<!-- SENDING (SOS) -->
-<div class="screen" id="screen-sending">
-  <div class="sending-spinner"></div>
-  <div class="sending-title">Sending Alert…</div>
-  <div class="sending-sub">Your emergency alert is being sent to DKMA. Please stay as calm as possible.</div>
-</div>
-
-<!-- SENT (SOS) -->
-<div class="screen" id="screen-sent">
-  <div class="sent-icon">🚨</div>
-  <div class="sent-title" style="color:#ff6b6b">Alert Active</div>
-  <div class="sent-sub">DKMA has been notified. Call or WhatsApp the lawyer for the fastest response. You cannot send another alert until this one is resolved by the firm.</div>
-  <div class="sent-actions">
-    <a class="sent-call-btn" id="sent-call-btn" href="#">📞 Call Lawyer Now</a>
-    <a class="sent-wa-btn" id="sent-wa-btn" href="#" target="_blank">💬 WhatsApp Lawyer</a>
-  </div>
-  <div class="sent-ref" id="sent-ref"></div>
-  <div class="sent-live-note" id="sent-live-note">Keep this page open if you want DKMA to keep receiving your live location and uploaded evidence.</div>
 </div>
 
 <script>
@@ -828,7 +831,7 @@ function triggerPanic(){
   if(timer)timer.textContent='00:00';
   if(status)status.textContent='Ready to record locally on this device';
   showScreen('trigger');
-  panicStartLocationTracking(true);
+  panicCaptureSnapshotLocation();
 }
 
 function selectSit(sit){
@@ -838,7 +841,47 @@ function selectSit(sit){
 }
 
 function getLocation(){
-  panicStartLocationTracking(true);
+  panicCaptureSnapshotLocation(true);
+}
+
+function panicCaptureSnapshotLocation(forceFresh){
+  if(!navigator.geolocation){
+    locationError='Location not available on this device';
+    panicRenderLocationLog();
+    panicRefreshUi();
+    return;
+  }
+  if(forceFresh){
+    currentLat=null;
+    currentLng=null;
+    panicTrackPoints=[];
+    panicTrackLastMapLink='';
+  }
+  const dot=document.getElementById('loc-dot');
+  const txt=document.getElementById('loc-txt');
+  const retry=document.getElementById('loc-retry');
+  if(dot){dot.className='loc-dot loading';}
+  if(txt){txt.textContent='Getting your location…';}
+  if(retry){retry.style.display='none';}
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      currentLat=pos.coords.latitude;
+      currentLng=pos.coords.longitude;
+      locationError=null;
+      panicTrackLastMapLink=`https://maps.google.com/?q=${currentLat},${currentLng}`;
+      if(dot){dot.className='loc-dot got';}
+      if(txt){txt.textContent=`Location ready · ${Number(currentLat).toFixed(5)}, ${Number(currentLng).toFixed(5)}`;}
+      panicRefreshUi();
+    },
+    err=>{
+      locationError=err?.message||'Could not get location';
+      if(dot){dot.className='loc-dot err';}
+      if(txt){txt.textContent='Could not get your location right now';}
+      if(retry){retry.style.display='inline';}
+      panicRefreshUi();
+    },
+    {enableHighAccuracy:true,maximumAge:5000,timeout:15000}
+  );
 }
 
 function panicRefreshUi(){
